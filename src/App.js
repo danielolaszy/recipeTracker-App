@@ -5,6 +5,38 @@ import { useState, useEffect } from "react";
 import Axios from "axios";
 
 function App() {
+  const [profileRegion, setProfileRegion] = useState("us");
+  const [profileRealm, setProfileRealm] = useState("kelthuzad");
+  const [profileCharacterName, setProfileCharacterName] = useState("asmongold");
+  const [profileProfessions, setProfileProfessions] = useState([]);
+
+  // creating baseURL for axios
+  const blizzApi = Axios.create({
+    baseURL: "https://" + profileRegion + ".api.blizzard.com/",
+    headers: {
+      // "Battlenet-Namespace": "profile-" + profileRegion,
+      "Authorization": "Bearer " + process.env.REACT_APP_ACCESS_TOKEN,
+    },
+  });
+
+  // Getting professions for character input in the fields
+  const getProfileProfessions = () => {
+    blizzApi
+      .get(
+        "/profile/wow/character/" +
+          profileRealm +
+          "/" +
+          profileCharacterName +
+          "/professions?namespace=profile-us&locale=en_US"
+      )
+      .then((response) => {
+        console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
+        setProfileProfessions(response.data.primaries);
+        setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
+        profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
+      });
+  };
+
   return (
     <div className="container">
       <div className="row m-3 justify-content-center">
@@ -22,7 +54,7 @@ function App() {
               <option value="Chicago"></option>
             </datalist>
           </div>
-          <button className="btn btn-primary" type="button">
+          <button className="btn btn-primary" type="button" onClick={getProfileProfessions}>
             Button
           </button>
         </div>
