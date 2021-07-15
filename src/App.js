@@ -103,14 +103,44 @@ function SourceType({ profession, expansion, sourceType }) {
   );
 }
 
-function Overview({ profession }) {
+function Overview({ professions, expansions }) {
   return (
     <>
       <section>
         <header className="border-bottom py-1 my-3">
           <h1>Overview</h1>
         </header>
-        <article></article>
+        <article>
+          {professions.map((profession) => {
+            return <Progress profession={profession} />;
+          })}
+        </article>
+      </section>
+    </>
+  );
+}
+
+function Progress({ profession }) {
+  return (
+    <>
+      <section className="mt-4 mb-4">
+        <header>
+          <h3>{profession.profession.name}</h3>
+        </header>
+        <article>
+          <div className="progress">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              style={{ width: "25%" }}
+              aria-valuenow="25"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              25%
+            </div>
+          </div>
+        </article>
       </section>
     </>
   );
@@ -209,7 +239,11 @@ function App() {
         </div>
 
         <Switch>
-          <Route exact path="/overview" component={Overview} />
+          <Route
+            exact
+            path="/overview"
+            render={() => <Overview professions={profileProfessions} expansions={expansions} />}
+          />
           {profileProfessions.map((profession) => {
             return (
               <Route
