@@ -1,19 +1,38 @@
 // import logo from './logo.svg';
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Axios from "axios";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 
-function Profession({ profession }) {
+function Profession({ profession, expansions }) {
   return (
     <>
       <section>
         <header className="border-bottom py-1 my-3">
           <h1>{profession.profession.name}</h1>
         </header>
-        <article></article>
+        <article>
+          {expansions.map((expansion) => {
+            return <Expansion profession={profession} expansion={expansion} />;
+          })}
+        </article>
       </section>
+    </>
+  );
+}
+
+function Expansion({ profession, expansion }) {
+  return (
+    <>
+      {expansion.expansion ? (
+        <section>
+          <header className="py-1 my-3">
+            <h3>{expansion.expansion}</h3>
+          </header>
+          <article></article>
+        </section>
+      ) : null}
     </>
   );
 }
@@ -36,6 +55,8 @@ function App() {
   const [profileRealm, setProfileRealm] = useState("kelthuzad");
   const [profileCharacterName, setProfileCharacterName] = useState("asmongold");
   const [profileProfessions, setProfileProfessions] = useState([]);
+
+  const [expansions, setExpansions] = useState([]);
 
   // creating baseURL for axios
   const blizzApi = Axios.create({
@@ -63,6 +84,17 @@ function App() {
         profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
       });
   };
+
+  // Getting expansions from database
+  const getExpansions = () => {
+    Axios.get("http://localhost:3001/expansions/").then((response) => {
+      setExpansions(response.data);
+    });
+  };
+
+  useEffect(() => {
+    getExpansions();
+  }, []);
 
   return (
     <Router>
@@ -109,7 +141,7 @@ function App() {
             <Route
               key={profession.profession.id}
               path={"/" + profession.profession.name}
-              render={() => <Profession profession={profession} />}
+              render={() => <Profession profession={profession} expansions={expansions} />}
             />
           );
         })}
