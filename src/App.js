@@ -8,13 +8,20 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 function Profession({ profession, expansions, sourceTypes }) {
   return (
     <>
-      <section>
+      <section className="mb-5">
         <header className="border-bottom py-1 my-3">
           <h1>{profession.profession.name}</h1>
         </header>
         <article>
           {expansions.map((expansion) => {
-            return <Expansion profession={profession} expansion={expansion} sourceTypes={sourceTypes} />;
+            return (
+              <Expansion
+                key={expansion.expansion}
+                profession={profession}
+                expansion={expansion}
+                sourceTypes={sourceTypes}
+              />
+            );
           })}
         </article>
       </section>
@@ -26,13 +33,20 @@ function Expansion({ profession, expansion, sourceTypes }) {
   return (
     <>
       {expansion.expansion ? (
-        <section>
-          <header className="py-1 my-3">
-            <h3>{expansion.expansion}</h3>
+        <section id={expansion.expansion} className="mt-4 mb-4">
+          <header>
+            <h3 className="m-0">{expansion.expansion}</h3>
           </header>
           <article className="d-flex align-content-start flex-wrap">
             {sourceTypes.map((sourceType) => {
-              return <SourceType profession={profession} expansion={expansion} sourceType={sourceType} />;
+              return (
+                <SourceType
+                  key={sourceType.sourcetype}
+                  profession={profession}
+                  expansion={expansion}
+                  sourceType={sourceType}
+                />
+              );
             })}
           </article>
         </section>
@@ -42,14 +56,49 @@ function Expansion({ profession, expansion, sourceTypes }) {
 }
 
 function SourceType({ profession, expansion, sourceType }) {
+  const [recipes, setRecipes] = useState([]);
+
+  const getRecipes = () => {
+    Axios.get(
+      "http://localhost:3001/recipes/" +
+        profession.profession.name +
+        "/" +
+        expansion.expansion +
+        "/" +
+        sourceType.sourcetype
+    ).then((response) => {
+      setRecipes(response.data);
+    });
+  };
+  useEffect(() => {
+    getRecipes();
+  }, []);
+
   return (
     <>
-      <section>
-        <header className="py-1 my-3">
-          <p className="text-capitalize">{sourceType.sourcetype}</p>
-        </header>
-        <article></article>
-      </section>
+      {recipes.length > 0 ? (
+        <section className="row my-2">
+          <header>
+            <p className="text-capitalize mb-1">{sourceType.sourcetype}</p>
+          </header>
+          <article>
+            {recipes.map((recipe) => {
+              return (
+                <a key={recipe.id} href={"https://www.wowhead.com/recipe/" + recipe.id}>
+                  <img
+                    id={recipe.id}
+                    src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
+                    // src="https://picsum.photos/200"
+                    className="rounded-3"
+                    style={{ maxWidth: "35px" }}
+                    alt={recipe.name}
+                  ></img>
+                </a>
+              );
+            })}
+          </article>
+        </section>
+      ) : null}
     </>
   );
 }
@@ -158,20 +207,20 @@ function App() {
             </button>
           </div>
         </div>
-      </div>
 
-      <Switch>
-        <Route exact path="/overview" component={Overview} />
-        {profileProfessions.map((profession) => {
-          return (
-            <Route
-              key={profession.profession.id}
-              path={"/" + profession.profession.name}
-              render={() => <Profession profession={profession} expansions={expansions} sourceTypes={sourceTypes} />}
-            />
-          );
-        })}
-      </Switch>
+        <Switch>
+          <Route exact path="/overview" component={Overview} />
+          {profileProfessions.map((profession) => {
+            return (
+              <Route
+                key={profession.profession.id}
+                path={"/" + profession.profession.name}
+                render={() => <Profession profession={profession} expansions={expansions} sourceTypes={sourceTypes} />}
+              />
+            );
+          })}
+        </Switch>
+      </div>
     </Router>
   );
 }
