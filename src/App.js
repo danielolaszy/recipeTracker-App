@@ -112,7 +112,7 @@ function Overview({ professions, expansions }) {
         </header>
         <article>
           {professions.map((profession) => {
-            return <Progress profession={profession} />;
+            return <Progress key={profession.profession.name} profession={profession} />;
           })}
         </article>
       </section>
@@ -121,25 +121,61 @@ function Overview({ professions, expansions }) {
 }
 
 function Progress({ profession }) {
+  const [maxSkillPoints, setMaxSkillPoints] = useState([]);
+  const [skillPoints, setSkillPoints] = useState([]);
+
+  const calcMaxSkillPoints = () => {
+    if (profession.tiers != null) {
+      const maxSkillPointsArray = profession.tiers.map((tier) => tier.max_skill_points);
+      const maxSkillPointsArraySum = maxSkillPointsArray.reduce((total, amount) => total + amount);
+      setMaxSkillPoints(maxSkillPointsArraySum);
+    }
+  };
+
+  const calcSkillPoints = () => {
+    if (profession.tiers != null) {
+      const skillPointsArray = profession.tiers.map((tier) => tier.skill_points);
+      const skillPointsArraySum = skillPointsArray.reduce((total, amount) => total + amount);
+      setSkillPoints(skillPointsArraySum);
+    }
+  };
+
+  const calcPercentage = () => {
+    if ((profession.id = 794)) {
+      const percentage = (skillPoints / maxSkillPoints) * 100 + "%";
+      return percentage;
+    }
+  };
+
+  useEffect(() => {
+    calcMaxSkillPoints();
+    calcSkillPoints();
+    calcPercentage();
+    console.log(calcPercentage());
+  }, []);
   return (
     <>
       <section className="mt-4 mb-4">
         <header>
-          <h3>{profession.profession.name}</h3>
+          <Link className="text-decoration-none" to={"/" + profession.profession.name}>
+            <h3>{profession.profession.name}</h3>
+          </Link>
         </header>
         <article>
-          <div className="progress">
-            <div
-              class="progress-bar"
-              role="progressbar"
-              style={{ width: "25%" }}
-              aria-valuenow="25"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            >
-              25%
+          <Link to={"/" + profession.profession.name}>
+            <div className="progress">
+              <div
+                className="progress-bar"
+                role="progressbar"
+                style={{ width: calcPercentage() }}
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                {skillPoints + "/" + maxSkillPoints}
+              </div>
             </div>
-          </div>
+          </Link>
         </article>
       </section>
     </>
@@ -178,7 +214,7 @@ function App() {
         console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
         setProfileProfessions(response.data.primaries);
         setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
-        profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
+        // profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
       });
   };
 
