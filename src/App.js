@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Axios from "axios";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 
-function Profession({ profession, expansions }) {
+function Profession({ profession, expansions, sourceTypes }) {
   return (
     <>
       <section>
@@ -14,7 +14,7 @@ function Profession({ profession, expansions }) {
         </header>
         <article>
           {expansions.map((expansion) => {
-            return <Expansion profession={profession} expansion={expansion} />;
+            return <Expansion profession={profession} expansion={expansion} sourceTypes={sourceTypes} />;
           })}
         </article>
       </section>
@@ -22,7 +22,7 @@ function Profession({ profession, expansions }) {
   );
 }
 
-function Expansion({ profession, expansion }) {
+function Expansion({ profession, expansion, sourceTypes }) {
   return (
     <>
       {expansion.expansion ? (
@@ -30,9 +30,26 @@ function Expansion({ profession, expansion }) {
           <header className="py-1 my-3">
             <h3>{expansion.expansion}</h3>
           </header>
-          <article></article>
+          <article className="d-flex align-content-start flex-wrap">
+            {sourceTypes.map((sourceType) => {
+              return <SourceType profession={profession} expansion={expansion} sourceType={sourceType} />;
+            })}
+          </article>
         </section>
       ) : null}
+    </>
+  );
+}
+
+function SourceType({ profession, expansion, sourceType }) {
+  return (
+    <>
+      <section>
+        <header className="py-1 my-3">
+          <p className="text-capitalize">{sourceType.sourcetype}</p>
+        </header>
+        <article></article>
+      </section>
     </>
   );
 }
@@ -57,6 +74,7 @@ function App() {
   const [profileProfessions, setProfileProfessions] = useState([]);
 
   const [expansions, setExpansions] = useState([]);
+  const [sourceTypes, setSourceTypes] = useState([]);
 
   // creating baseURL for axios
   const blizzApi = Axios.create({
@@ -92,8 +110,16 @@ function App() {
     });
   };
 
+  // Getting sourcetypes from database
+  const getSourceTypes = () => {
+    Axios.get("http://localhost:3001/sourcetypes/").then((response) => {
+      setSourceTypes(response.data);
+    });
+  };
+
   useEffect(() => {
     getExpansions();
+    getSourceTypes();
   }, []);
 
   return (
@@ -141,7 +167,7 @@ function App() {
             <Route
               key={profession.profession.id}
               path={"/" + profession.profession.name}
-              render={() => <Profession profession={profession} expansions={expansions} />}
+              render={() => <Profession profession={profession} expansions={expansions} sourceTypes={sourceTypes} />}
             />
           );
         })}
