@@ -35,7 +35,9 @@ function Expansion({ profession, expansion, sourceTypes }) {
 
   useEffect(() => {
     const knownRecipes = profession.tiers.map((tier) => tier.known_recipes.map((recipe) => recipe.id));
+    setRecipeIds(knownRecipes.flat(1));
   }, []);
+  // console.log(recipeIds);
   return (
     <>
       <section id={expansion.expansion} className="mt-4 mb-4">
@@ -50,6 +52,7 @@ function Expansion({ profession, expansion, sourceTypes }) {
                 profession={profession}
                 expansion={expansion}
                 sourceType={sourceType}
+                recipeIds={recipeIds}
               />
             );
           })}
@@ -59,7 +62,7 @@ function Expansion({ profession, expansion, sourceTypes }) {
   );
 }
 
-function SourceType({ profession, expansion, sourceType }) {
+function SourceType({ profession, expansion, sourceType, recipeIds }) {
   const [recipes, setRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -85,10 +88,9 @@ function SourceType({ profession, expansion, sourceType }) {
   useEffect(() => {
     getRecipes();
   }, []);
-
+  console.log(recipeIds.includes(1633));
   return (
     <>
-      <PushSpinner size={100} color="#686769" loading={isLoading} />
       {recipes.length > 0 ? (
         <section className="row my-2">
           <header>
@@ -96,13 +98,23 @@ function SourceType({ profession, expansion, sourceType }) {
           </header>
           <article>
             {recipes.map((recipe) => {
-              return (
+              return recipeIds.includes(recipe.id) ? (
                 <a key={recipe.id} href={"https://www.wowhead.com/recipe/" + recipe.id}>
                   <img
                     id={recipe.id}
                     src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
                     className="rounded-3"
                     style={{ maxWidth: "35px" }}
+                    alt={recipe.name}
+                  ></img>
+                </a>
+              ) : (
+                <a key={recipe.id} href={"https://www.wowhead.com/recipe/" + recipe.id}>
+                  <img
+                    id={recipe.id}
+                    src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
+                    className="rounded-3"
+                    style={{ maxWidth: "35px", filter: "grayscale(100%)", filter: "brightness(25%)" }}
                     alt={recipe.name}
                   ></img>
                 </a>
@@ -219,7 +231,7 @@ function App() {
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
     try {
-      const realmFind = realms.find((realm) => realm.name == profileRealm && realm.region == profileRegion);
+      const realmFind = realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
       blizzApi
         .get(
           "/profile/wow/character/" +
