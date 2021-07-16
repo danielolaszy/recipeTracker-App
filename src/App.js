@@ -151,7 +151,6 @@ function Progress({ profession }) {
     calcMaxSkillPoints();
     calcSkillPoints();
     calcPercentage();
-    console.log(calcPercentage());
   }, []);
   return (
     <>
@@ -183,11 +182,12 @@ function Progress({ profession }) {
 }
 
 function App() {
-  const [profileRegion, setProfileRegion] = useState("us");
-  const [profileRealm, setProfileRealm] = useState("kelthuzad");
+  const [profileRegion, setProfileRegion] = useState("US");
+  const [profileRealm, setProfileRealm] = useState("Kel'Thuzad");
   const [profileCharacterName, setProfileCharacterName] = useState("asmongold");
   const [profileProfessions, setProfileProfessions] = useState([]);
 
+  const [realms, setRealms] = useState([]);
   const [expansions, setExpansions] = useState([]);
   const [sourceTypes, setSourceTypes] = useState([]);
 
@@ -202,13 +202,20 @@ function App() {
 
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
+    const filter = realms.filter(
+      (realm) => realm.name.toLowerCase() === profileRealm && realm.region.toLowerCase() === profileRegion
+    );
+    console.log(filter);
+
     blizzApi
       .get(
         "/profile/wow/character/" +
-          profileRealm +
+          filter[0].slug +
           "/" +
           profileCharacterName +
-          "/professions?namespace=profile-us&locale=en_US"
+          "/professions?namespace=profile-" +
+          profileRegion +
+          "&locale=en_US"
       )
       .then((response) => {
         console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
@@ -216,6 +223,13 @@ function App() {
         setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
         // profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
       });
+  };
+
+  // Getting realms from database
+  const getRealms = () => {
+    Axios.get("http://localhost:3001/realms/").then((response) => {
+      setRealms(response.data);
+    });
   };
 
   // Getting expansions from database
@@ -232,7 +246,19 @@ function App() {
     });
   };
 
+  const handleCharacter = (e) => {
+    e.preventDefault();
+    setProfileCharacterName(e.target.value.toLowerCase());
+  };
+
+  const handleRealm = (e) => {
+    e.preventDefault();
+    setProfileRegion(e.target.value.slice(0, 2).toLowerCase());
+    setProfileRealm(e.target.value.slice(3, 255).toLowerCase());
+  };
+
   useEffect(() => {
+    getRealms();
     getExpansions();
     getSourceTypes();
   }, []);
@@ -253,23 +279,38 @@ function App() {
           })}
         </nav>
 
-        <div className="row m-3 justify-content-center">
+        <div className="row m-3 justify-content-center ">
           <div className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2">
             <div>
-              <input type="text" className="form-control" id="formGroupExampleInput" placeholder="Character"></input>
+              <input
+                type="text"
+                className="form-control"
+                id="formGroupExampleInput"
+                placeholder="Character"
+                onChange={handleCharacter}
+              ></input>
             </div>
             <div>
-              <input className="form-control" list="datalistOptions" id="exampleDataList" placeholder="Realms"></input>
+              <input
+                className="form-control"
+                list="datalistOptions"
+                id="realms"
+                placeholder="Realm"
+                onChange={handleRealm}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck="off"
+                required
+              ></input>
+              <div class="invalid-feedback">Please provide a valid city.</div>
               <datalist id="datalistOptions">
-                <option value="Kelthuzad"></option>
-                <option value="Ravencrest"></option>
-                <option value="Outland"></option>
-                <option value="Tichondrious"></option>
-                <option value="Chicago"></option>
+                {realms.map((realm) => {
+                  return <option key={realm.id} id={realm.id} value={realm.region + "-" + realm.name}></option>;
+                })}
               </datalist>
             </div>
             <button className="btn btn-primary" type="button" onClick={getProfileProfessions}>
-              Button
+              Search
             </button>
           </div>
         </div>
