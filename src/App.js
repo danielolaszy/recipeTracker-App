@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { PushSpinner } from "react-spinners-kit";
 
 function Profession({ profession, expansions, sourceTypes }) {
   return (
@@ -30,52 +31,64 @@ function Profession({ profession, expansions, sourceTypes }) {
 }
 
 function Expansion({ profession, expansion, sourceTypes }) {
+  const [recipeIds, setRecipeIds] = useState([]);
+
+  useEffect(() => {
+    const knownRecipes = profession.tiers.map((tier) => tier.known_recipes.map((recipe) => recipe.id));
+  }, []);
   return (
     <>
-      {expansion.expansion ? (
-        <section id={expansion.expansion} className="mt-4 mb-4">
-          <header>
-            <h3 className="m-0">{expansion.expansion}</h3>
-          </header>
-          <article className="d-flex align-content-start flex-wrap">
-            {sourceTypes.map((sourceType) => {
-              return (
-                <SourceType
-                  key={sourceType.sourcetype}
-                  profession={profession}
-                  expansion={expansion}
-                  sourceType={sourceType}
-                />
-              );
-            })}
-          </article>
-        </section>
-      ) : null}
+      <section id={expansion.expansion} className="mt-4 mb-4">
+        <header>
+          <h3 className="m-0">{expansion.expansion}</h3>
+        </header>
+        <article className="d-flex align-content-start flex-wrap">
+          {sourceTypes.map((sourceType) => {
+            return (
+              <SourceType
+                key={sourceType.sourcetype}
+                profession={profession}
+                expansion={expansion}
+                sourceType={sourceType}
+              />
+            );
+          })}
+        </article>
+      </section>
     </>
   );
 }
 
 function SourceType({ profession, expansion, sourceType }) {
   const [recipes, setRecipes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const getRecipes = () => {
-    Axios.get(
-      "http://localhost:3001/recipes/" +
-        profession.profession.name +
-        "/" +
-        expansion.expansion +
-        "/" +
-        sourceType.sourcetype
-    ).then((response) => {
-      setRecipes(response.data);
-    });
+    try {
+      setIsLoading(true);
+      Axios.get(
+        "http://localhost:3001/recipes/" +
+          profession.profession.name +
+          "/" +
+          expansion.expansion +
+          "/" +
+          sourceType.sourcetype
+      ).then((response) => {
+        setRecipes(response.data);
+      });
+      setIsLoading(false);
+    } catch (err) {
+      console.error(err);
+    }
   };
+
   useEffect(() => {
     getRecipes();
   }, []);
 
   return (
     <>
+      <PushSpinner size={100} color="#686769" loading={isLoading} />
       {recipes.length > 0 ? (
         <section className="row my-2">
           <header>
@@ -88,7 +101,6 @@ function SourceType({ profession, expansion, sourceType }) {
                   <img
                     id={recipe.id}
                     src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
-                    // src="https://picsum.photos/200"
                     className="rounded-3"
                     style={{ maxWidth: "35px" }}
                     alt={recipe.name}
@@ -200,50 +212,66 @@ function App() {
     },
   });
 
+  // const searching = () => {
+  //   const realmFind = realms.find((realm) => realm.name == profileRealm && realm.region == profileRegion);
+  // };
+
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
-    const filter = realms.filter(
-      (realm) => realm.name.toLowerCase() === profileRealm && realm.region.toLowerCase() === profileRegion
-    );
-    console.log(filter);
-
-    blizzApi
-      .get(
-        "/profile/wow/character/" +
-          filter[0].slug +
-          "/" +
-          profileCharacterName +
-          "/professions?namespace=profile-" +
-          profileRegion +
-          "&locale=en_US"
-      )
-      .then((response) => {
-        console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
-        setProfileProfessions(response.data.primaries);
-        setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
-        // profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
-      });
+    try {
+      const realmFind = realms.find((realm) => realm.name == profileRealm && realm.region == profileRegion);
+      blizzApi
+        .get(
+          "/profile/wow/character/" +
+            realmFind.slug +
+            "/" +
+            profileCharacterName +
+            "/professions?namespace=profile-" +
+            profileRegion +
+            "&locale=en_US"
+        )
+        .then((response) => {
+          console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
+          setProfileProfessions(response.data.primaries);
+          setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
+          // profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
+        });
+    } catch (err) {
+      console.error("Failed to query blizzard api for character profile:\n" + err);
+    }
   };
 
   // Getting realms from database
   const getRealms = () => {
-    Axios.get("http://localhost:3001/realms/").then((response) => {
-      setRealms(response.data);
-    });
+    try {
+      Axios.get("http://localhost:3001/realms/").then((response) => {
+        setRealms(response.data);
+      });
+    } catch (err) {
+      console.error("Failed to get realms from database: " + err);
+    }
   };
 
   // Getting expansions from database
   const getExpansions = () => {
-    Axios.get("http://localhost:3001/expansions/").then((response) => {
-      setExpansions(response.data);
-    });
+    try {
+      Axios.get("http://localhost:3001/expansions/").then((response) => {
+        setExpansions(response.data);
+      });
+    } catch (err) {
+      console.error("Failed to get expansions from database: " + err);
+    }
   };
 
   // Getting sourcetypes from database
   const getSourceTypes = () => {
-    Axios.get("http://localhost:3001/sourcetypes/").then((response) => {
-      setSourceTypes(response.data);
-    });
+    try {
+      Axios.get("http://localhost:3001/sourcetypes/").then((response) => {
+        setSourceTypes(response.data);
+      });
+    } catch (err) {
+      console.error("Failed to get sourcetypes from database: " + err);
+    }
   };
 
   const handleCharacter = (e) => {
@@ -262,7 +290,7 @@ function App() {
     getExpansions();
     getSourceTypes();
   }, []);
-
+  // searching();
   return (
     <Router>
       <div className="container">
@@ -279,7 +307,7 @@ function App() {
           })}
         </nav>
 
-        <div className="row m-3 justify-content-center ">
+        <div className="row m-3 justify-content-center">
           <div className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2">
             <div>
               <input
@@ -288,22 +316,20 @@ function App() {
                 id="formGroupExampleInput"
                 placeholder="Character"
                 onChange={handleCharacter}
+                autoFocus
               ></input>
             </div>
             <div>
               <input
+                type="text"
                 className="form-control"
-                list="datalistOptions"
-                id="realms"
+                list="realms"
+                id="realmsList"
                 placeholder="Realm"
                 onChange={handleRealm}
                 autoComplete="off"
-                autoCorrect="off"
-                spellCheck="off"
-                required
               ></input>
-              <div class="invalid-feedback">Please provide a valid city.</div>
-              <datalist id="datalistOptions">
+              <datalist id="realms">
                 {realms.map((realm) => {
                   return <option key={realm.id} id={realm.id} value={realm.region + "-" + realm.name}></option>;
                 })}
