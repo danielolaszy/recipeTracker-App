@@ -3,6 +3,7 @@ import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
+import qs from "qs";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import { PushSpinner } from "react-spinners-kit";
 
@@ -223,23 +224,21 @@ function App() {
   const [expansions, setExpansions] = useState([]);
   const [sourceTypes, setSourceTypes] = useState([]);
 
+  const [accessToken, setAccessToken] = useState("");
+
   // creating baseURL for axios
   const blizzApi = Axios.create({
     baseURL: "https://" + profileRegion + ".api.blizzard.com/",
     headers: {
       // "Battlenet-Namespace": "profile-" + profileRegion,
-      "Authorization": "Bearer " + process.env.REACT_APP_ACCESS_TOKEN,
+      "Authorization": "Bearer " + accessToken,
     },
   });
 
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
     try {
-      console.log(profileRealm);
-      console.log(profileRegion);
-
       const realmFind = realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
-      console.log(realmFind);
 
       blizzApi
         .get(
@@ -259,6 +258,25 @@ function App() {
         });
     } catch (err) {
       console.error("Failed to query blizzard api for character profile:\n" + err);
+    }
+  };
+
+  const getAccessToken = () => {
+    try {
+      const data = { "grant_type": "client_credentials" };
+      Axios.request({
+        url: "/oauth/token",
+        method: "post",
+        baseURL: "https://us.battle.net/",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        auth: {
+          username: process.env.REACT_APP_CLIENT_ID,
+          password: process.env.REACT_APP_CLIENT_SECRET,
+        },
+        data: qs.stringify(data),
+      }).then((response) => setAccessToken(response.data.access_token));
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -312,6 +330,7 @@ function App() {
     getRealms();
     getExpansions();
     getSourceTypes();
+    getAccessToken();
   }, []);
   return (
     <Router>
