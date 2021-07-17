@@ -3,9 +3,10 @@ import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
-import qs from "qs";
+import qs from "qs"; // used to oAuth token
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import { PushSpinner } from "react-spinners-kit";
+import { motion } from "framer-motion";
 
 function Profession({ profession, expansions, sourceTypes }) {
   return (
@@ -33,7 +34,6 @@ function Profession({ profession, expansions, sourceTypes }) {
 
 function Expansion({ profession, expansion, sourceTypes }) {
   const [recipeIds, setRecipeIds] = useState([]);
-  // console.log(profession.tiers);
   useEffect(() => {
     try {
       if (profession.tiers !== null) {
@@ -46,7 +46,6 @@ function Expansion({ profession, expansion, sourceTypes }) {
       console.error(err);
     }
   }, []);
-  // console.log(recipeIds);
   return (
     <>
       <section id={expansion.expansion} className="mt-4 mb-4">
@@ -214,6 +213,97 @@ function Progress({ profession }) {
   );
 }
 
+function Navbar({ profileProfessions }) {
+  const navBar = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.5,
+      },
+    },
+  };
+
+  const navItem = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1 },
+  };
+
+  return (
+    <motion.nav variants={navBar} initial="hidden" animate="show" className="nav nav-pills nav-justified">
+      <Link variants={navItem} className="nav-link" to="/overview">
+        Overview
+      </Link>
+      {profileProfessions.map((profession) => {
+        return profession ? (
+          <Link
+            variants={navItem}
+            key={profession.profession.id}
+            className="nav-link"
+            to={"/" + profession.profession.name}
+          >
+            {profession.profession.name}
+          </Link>
+        ) : null;
+      })}
+    </motion.nav>
+  );
+}
+
+function Input(props) {
+  const [state, setState] = useState({
+    characterName: "",
+    realm: "",
+  });
+
+  const handleChange = (event) => {
+    props.onChange({ ...state, [event.target.name]: event.target.value });
+    setState({ ...state, [event.target.name]: event.target.value });
+  };
+
+  return (
+    <div className="row m-3 justify-content-center">
+      <form className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2">
+        <div>
+          <input
+            type="text"
+            className="form-control"
+            id="formGroupExampleInput"
+            placeholder="Character"
+            name="characterName"
+            value={state.characterName}
+            // onChange={(event) => props.onChange(event.target.value)}
+            onChange={handleChange}
+            autoFocus
+          ></input>
+        </div>
+        <div>
+          <input
+            type="text"
+            className="form-control"
+            list="realms"
+            id="realmsList"
+            placeholder="Realm"
+            name="realm"
+            value={state.realm}
+            autoComplete="off"
+            onChange={handleChange}
+            // onChange={(event) => props.onChange(event.target.value)}
+          ></input>
+          <datalist id="realms">
+            {props.realms.map((realm) => {
+              return <option key={realm.id} id={realm.id} value={realm.region + "-" + realm.name}></option>;
+            })}
+          </datalist>
+        </div>
+        <button className="btn btn-primary" type="button" onClick={props.getProfileProfessions}>
+          Search
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function App() {
   const [profileRegion, setProfileRegion] = useState("");
   const [profileRealm, setProfileRealm] = useState("");
@@ -225,6 +315,12 @@ function App() {
   const [sourceTypes, setSourceTypes] = useState([]);
 
   const [accessToken, setAccessToken] = useState("");
+
+  const [showNavbar, setShowNavbar] = useState(false);
+  const [state, setState] = useState({
+    characterName: "",
+    realm: "",
+  });
 
   // creating baseURL for axios
   const blizzApi = Axios.create({
@@ -238,8 +334,8 @@ function App() {
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
     try {
+      getAccessToken();
       const realmFind = realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
-
       blizzApi
         .get(
           "/profile/wow/character/" +
@@ -254,7 +350,7 @@ function App() {
           console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
           setProfileProfessions(response.data.primaries);
           setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
-          console.log(profileProfessions);
+          setShowNavbar(true);
         });
     } catch (err) {
       console.error("Failed to query blizzard api for character profile:\n" + err);
@@ -313,75 +409,60 @@ function App() {
     }
   };
 
-  const handleCharacter = (e) => {
-    e.preventDefault();
-    setProfileCharacterName(e.target.value.toLowerCase());
+  const handleCharacter = (data) => {
+    // setProfileCharacterName(data); // toLowerCase is needed, otherwise API won't accept character name
+    console.log("handleCharacter: " + data);
   };
 
-  const handleRealm = (e) => {
-    e.preventDefault();
-    setProfileRegion(e.target.value.slice(0, 2));
-    setProfileRealm(e.target.value.slice(3, 255));
-    console.log(profileRealm);
-    console.log(profileRegion);
+  const handleRealm = (data) => {
+    setProfileRegion(data.slice(0, 2));
+    setProfileRealm(data.slice(3, 255));
   };
 
   useEffect(() => {
     getRealms();
     getExpansions();
     getSourceTypes();
-    getAccessToken();
   }, []);
+
+  const navBar = {
+    hidden: {
+      opacity: 0,
+      y: 0,
+    },
+    show: {
+      opacity: 1,
+      y: 0,
+    },
+  };
+
+  const navLink = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1 },
+  };
+
+  const onchange = (data) => {
+    console.log("parent>>", data.realm);
+    setProfileCharacterName(data.characterName.toLowerCase());
+    setProfileRegion(data.realm.slice(0, 2));
+    setProfileRealm(data.realm.slice(3, 255));
+  };
+  console.log("Parent>CharacterName>", profileCharacterName);
+  console.log("Parent>Realm>", profileRealm);
+  console.log("Parent>Region>", profileRegion);
+
+  // e.target.value.toLowerCase();
   return (
     <Router>
       <div className="container">
-        <nav className="nav nav-pills nav-justified">
-          <Link className="nav-link" to="/overview">
-            Overview
-          </Link>
-          {profileProfessions.map((profession) => {
-            return profession ? (
-              <Link key={profession.profession.id} className="nav-link" to={"/" + profession.profession.name}>
-                {profession.profession.name}
-              </Link>
-            ) : null;
-          })}
-        </nav>
-
-        <div className="row m-3 justify-content-center">
-          <div className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2">
-            <div>
-              <input
-                type="text"
-                className="form-control"
-                id="formGroupExampleInput"
-                placeholder="Character"
-                onChange={handleCharacter}
-                autoFocus
-              ></input>
-            </div>
-            <div>
-              <input
-                type="text"
-                className="form-control"
-                list="realms"
-                id="realmsList"
-                placeholder="Realm"
-                onChange={handleRealm}
-                autoComplete="off"
-              ></input>
-              <datalist id="realms">
-                {realms.map((realm) => {
-                  return <option key={realm.id} id={realm.id} value={realm.region + "-" + realm.name}></option>;
-                })}
-              </datalist>
-            </div>
-            <button className="btn btn-primary" type="button" onClick={getProfileProfessions}>
-              Search
-            </button>
-          </div>
-        </div>
-
+        {showNavbar ? <Navbar profileProfessions={profileProfessions} /> : null}
+        <Input
+          data={state}
+          onChange={(data) => onchange(data)}
+          // onChange={(realm) => handleRealm(realm)}
+          realms={realms}
+          getProfileProfessions={getProfileProfessions}
+        />
         <Switch>
           <Route
             exact
