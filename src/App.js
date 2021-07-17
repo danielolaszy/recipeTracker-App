@@ -32,10 +32,18 @@ function Profession({ profession, expansions, sourceTypes }) {
 
 function Expansion({ profession, expansion, sourceTypes }) {
   const [recipeIds, setRecipeIds] = useState([]);
-
+  // console.log(profession.tiers);
   useEffect(() => {
-    const knownRecipes = profession.tiers.map((tier) => tier.known_recipes.map((recipe) => recipe.id));
-    setRecipeIds(knownRecipes.flat(1));
+    try {
+      if (profession.tiers !== null) {
+        const knownRecipes = profession.tiers.map((tier) =>
+          tier.knownrecipes !== null ? tier.known_recipes.map((recipe) => recipe.id) : null
+        );
+        setRecipeIds(knownRecipes.flat(1));
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }, []);
   // console.log(recipeIds);
   return (
@@ -88,7 +96,7 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
   useEffect(() => {
     getRecipes();
   }, []);
-  console.log(recipeIds.includes(1633));
+
   return (
     <>
       {recipes.length > 0 ? (
@@ -103,7 +111,7 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
                   <img
                     id={recipe.id}
                     src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
-                    className="rounded-3"
+                    className="rounded-3 border border-success"
                     style={{ maxWidth: "35px" }}
                     alt={recipe.name}
                   ></img>
@@ -113,8 +121,8 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
                   <img
                     id={recipe.id}
                     src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
-                    className="rounded-3"
-                    style={{ maxWidth: "35px", filter: "grayscale(100%)", filter: "brightness(25%)" }}
+                    className="rounded-3 border border-danger"
+                    style={{ maxWidth: "35px", filter: "grayscale(100%)", filter: "brightness(15%)" }}
                     alt={recipe.name}
                   ></img>
                 </a>
@@ -206,9 +214,9 @@ function Progress({ profession }) {
 }
 
 function App() {
-  const [profileRegion, setProfileRegion] = useState("US");
-  const [profileRealm, setProfileRealm] = useState("Kel'Thuzad");
-  const [profileCharacterName, setProfileCharacterName] = useState("asmongold");
+  const [profileRegion, setProfileRegion] = useState("");
+  const [profileRealm, setProfileRealm] = useState("");
+  const [profileCharacterName, setProfileCharacterName] = useState("");
   const [profileProfessions, setProfileProfessions] = useState([]);
 
   const [realms, setRealms] = useState([]);
@@ -224,14 +232,15 @@ function App() {
     },
   });
 
-  // const searching = () => {
-  //   const realmFind = realms.find((realm) => realm.name == profileRealm && realm.region == profileRegion);
-  // };
-
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
     try {
+      console.log(profileRealm);
+      console.log(profileRegion);
+
       const realmFind = realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
+      console.log(realmFind);
+
       blizzApi
         .get(
           "/profile/wow/character/" +
@@ -246,7 +255,7 @@ function App() {
           console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
           setProfileProfessions(response.data.primaries);
           setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
-          // profileProfessions.forEach((profession) => console.log("Found " + profession.profession.name + "!"));
+          console.log(profileProfessions);
         });
     } catch (err) {
       console.error("Failed to query blizzard api for character profile:\n" + err);
@@ -293,8 +302,10 @@ function App() {
 
   const handleRealm = (e) => {
     e.preventDefault();
-    setProfileRegion(e.target.value.slice(0, 2).toLowerCase());
-    setProfileRealm(e.target.value.slice(3, 255).toLowerCase());
+    setProfileRegion(e.target.value.slice(0, 2));
+    setProfileRealm(e.target.value.slice(3, 255));
+    console.log(profileRealm);
+    console.log(profileRegion);
   };
 
   useEffect(() => {
@@ -302,7 +313,6 @@ function App() {
     getExpansions();
     getSourceTypes();
   }, []);
-  // searching();
   return (
     <Router>
       <div className="container">
@@ -311,11 +321,11 @@ function App() {
             Overview
           </Link>
           {profileProfessions.map((profession) => {
-            return (
+            return profession ? (
               <Link key={profession.profession.id} className="nav-link" to={"/" + profession.profession.name}>
                 {profession.profession.name}
               </Link>
-            );
+            ) : null;
           })}
         </nav>
 
@@ -360,13 +370,13 @@ function App() {
             render={() => <Overview professions={profileProfessions} expansions={expansions} />}
           />
           {profileProfessions.map((profession) => {
-            return (
+            return profession ? (
               <Route
                 key={profession.profession.id}
                 path={"/" + profession.profession.name}
                 render={() => <Profession profession={profession} expansions={expansions} sourceTypes={sourceTypes} />}
               />
-            );
+            ) : null;
           })}
         </Switch>
       </div>
