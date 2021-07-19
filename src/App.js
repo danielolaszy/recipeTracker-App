@@ -140,6 +140,7 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
 }
 
 function Overview({ professions, expansions }) {
+  console.log(professions);
   const variants = {
     visible: { opacity: 1 },
     hidden: { opacity: 0 },
@@ -147,16 +148,18 @@ function Overview({ professions, expansions }) {
 
   return (
     <>
-      <motion.section initial="hidden" animate="visible" variants={variants}>
-        <header className="border-bottom py-1 my-3">
-          <h1>Overview</h1>
-        </header>
-        <article>
-          {professions.map((profession) => {
-            return <Progress key={profession.profession.name} profession={profession} />;
-          })}
-        </article>
-      </motion.section>
+      {professions ? (
+        <motion.section initial="hidden" animate="visible" variants={variants}>
+          <header className="border-bottom py-1 my-3">
+            <h1>Overview</h1>
+          </header>
+          <article>
+            {professions.map((profession) => {
+              return <Progress key={profession.profession.name} profession={profession} />;
+            })}
+          </article>
+        </motion.section>
+      ) : null}
     </>
   );
 }
@@ -188,6 +191,14 @@ function Progress({ profession }) {
     }
   };
 
+  const progressDisable = () => {
+    if (profession.profession.name === "Archaeology") {
+      return 100 + "%";
+    } else {
+      return calcPercentage();
+    }
+  };
+
   useEffect(() => {
     calcMaxSkillPoints();
     calcSkillPoints();
@@ -208,7 +219,7 @@ function Progress({ profession }) {
               <div
                 className="progress-bar"
                 role="progressbar"
-                style={{ width: calcPercentage() }}
+                style={{ width: progressDisable() }}
                 aria-valuenow="25"
                 aria-valuemin="0"
                 aria-valuemax="100"
@@ -223,7 +234,8 @@ function Progress({ profession }) {
   );
 }
 
-function Navbar({ profileProfessions }) {
+// NAVBAR COMPONENT
+function Navbar({ profileProfessions, onClick }) {
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -241,26 +253,24 @@ function Navbar({ profileProfessions }) {
 
   return (
     <motion.nav variants={container} initial="hidden" animate="show" className="nav nav-pills nav-justified">
-      <Link variants={item} className="nav-link" to="/overview">
+      <Link className="nav-link" to="/overview">
         Overview
       </Link>
       {profileProfessions.map((profession) => {
         return profession ? (
-          <Link
-            variants={item}
-            key={profession.profession.id}
-            className="nav-link"
-            to={"/" + profession.profession.name}
-          >
+          <Link key={profession.profession.id} className="nav-link" to={"/" + profession.profession.name}>
             {profession.profession.name}
           </Link>
         ) : null;
       })}
+      <Link value={[]} className="nav-link" to="/" onClick={(e) => onClick(e.target.value)}>
+        Log out
+      </Link>
     </motion.nav>
   );
 }
 
-// Input Component
+// INPUT COMPONENT
 function Input(props) {
   const [state, setState] = useState({
     characterName: "",
@@ -288,7 +298,7 @@ function Input(props) {
   };
 
   return (
-    <div className="row m-3 justify-content-center">
+    <div className="row m-3 justify-content-center align-items-center h-75">
       <motion.form
         variants={container}
         initial="hidden"
@@ -328,9 +338,9 @@ function Input(props) {
             })}
           </datalist>
         </motion.div>
-        <motion.button variants={item} className="btn btn-primary" type="button" onClick={props.getProfileProfessions}>
+        <motion.Link to="/Overview" variants={item} className="btn btn-primary" onClick={props.getProfileProfessions}>
           Search
-        </motion.button>
+        </motion.Link>
       </motion.form>
     </div>
   );
@@ -474,38 +484,39 @@ function App() {
   };
 
   const onchange = (data) => {
-    console.log("parent>>", data.realm);
     setProfileCharacterName(data.characterName.toLowerCase());
     setProfileRegion(data.realm.slice(0, 2));
     setProfileRealm(data.realm.slice(3, 255));
   };
-  console.log("Parent>CharacterName>", profileCharacterName);
-  console.log("Parent>Realm>", profileRealm);
-  console.log("Parent>Region>", profileRegion);
 
-  // e.target.value.toLowerCase();
   return (
     <Router>
       <div className="container vh-100">
-        {showNavbar ? (
-          <Navbar profileProfessions={profileProfessions} />
-        ) : (
-          <div className="row align-items-center h-75">
-            <Input
-              data={state}
-              onChange={(data) => onchange(data)}
-              // onChange={(realm) => handleRealm(realm)}
-              realms={realms}
-              getProfileProfessions={getProfileProfessions}
-            />
-          </div>
-        )}
+        {profileProfessions.length > 0 ? (
+          <Navbar profileProfessions={profileProfessions} onClick={() => setProfileProfessions([])} />
+        ) : null}
         <Switch>
-          <Route exact path="/" />
           <Route
-            path="/overview"
+            exact
+            path="/"
+            render={() =>
+              profileProfessions.length < 1 ? (
+                <Input
+                  data={state}
+                  onChange={(data) => onchange(data)}
+                  // onChange={(realm) => handleRealm(realm)}
+                  realms={realms}
+                  getProfileProfessions={getProfileProfessions}
+                />
+              ) : null
+            }
+          />
+
+          <Route
+            path="/Overview"
             render={() => <Overview professions={profileProfessions} expansions={expansions} />}
           />
+
           {profileProfessions.map((profession) => {
             return profession ? (
               <Route
