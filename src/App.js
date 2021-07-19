@@ -8,16 +8,26 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import { PushSpinner } from "react-spinners-kit";
 import { motion } from "framer-motion";
 
-function Profession({ profession, expansions, sourceTypes }) {
+function Profession({ profession, expansions, sourceTypes, profileCharacterName, profileRealm, profileRegion }) {
   const variants = {
     visible: { opacity: 1 },
     hidden: { opacity: 0 },
   };
   return (
     <>
-      <section className="mb-5">
-        <motion.header className="border-bottom py-1 my-3">
-          <h1 className="fw-bolder">{profession.profession.name}</h1>
+      <section className="mb-5 pb-5">
+        <motion.header className="d-flex flex-row border-bottom py-1 my-3 ">
+          <div className="d-flex flex-fill align-self-baseline">
+            <div className="d-flex flex-column justify-content-start">
+              <h1 className="fw-bolder">{profession.profession.name}</h1>
+            </div>
+            <div className="d-flex flex-column align-self-end flex-fill">
+              <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+              <p className="text-end m-0 p-0">
+                {profileRegion}-{profileRealm}
+              </p>
+            </div>
+          </div>
         </motion.header>
         <motion.article initial="hidden" animate="visible" variants={variants}>
           {profession.profession.name === "Fishing" || profession.profession.name === "Archaeology" ? (
@@ -532,7 +542,16 @@ function App() {
               <Route
                 key={profession.profession.id}
                 path={"/" + profession.profession.name}
-                render={() => <Profession profession={profession} expansions={expansions} sourceTypes={sourceTypes} />}
+                render={() => (
+                  <Profession
+                    profession={profession}
+                    expansions={expansions}
+                    sourceTypes={sourceTypes}
+                    profileCharacterName={profileCharacterName}
+                    profileRealm={profileRealm}
+                    profileRegion={profileRegion}
+                  />
+                )}
               />
             ) : null;
           })}
