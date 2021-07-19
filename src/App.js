@@ -17,19 +17,29 @@ function Profession({ profession, expansions, sourceTypes }) {
     <>
       <section className="mb-5">
         <motion.header className="border-bottom py-1 my-3">
-          <h1>{profession.profession.name}</h1>
+          <h1 className="fw-bolder">{profession.profession.name}</h1>
         </motion.header>
         <motion.article initial="hidden" animate="visible" variants={variants}>
-          {expansions.map((expansion) => {
-            return (
-              <Expansion
-                key={expansion.expansion}
-                profession={profession}
-                expansion={expansion}
-                sourceTypes={sourceTypes}
-              />
-            );
-          })}
+          {profession.profession.name === "Fishing" || profession.profession.name === "Archaeology" ? (
+            <div className="row m-3 justify-content-center align-items-center h-75">
+              <div className="col">
+                <h3 className="text-center fw-normal m-0">404</h3>
+                <p className="text-center fw-light">Could not find any recipes for {profession.profession.name}...</p>
+              </div>
+            </div>
+          ) : (
+            expansions.map((expansion) => {
+              return (
+                <Expansion
+                  key={expansion.expansion}
+                  profession={profession}
+                  expansion={expansion}
+                  sourceTypes={sourceTypes}
+                />
+              );
+            })
+          )}
+          {}
         </motion.article>
       </section>
     </>
