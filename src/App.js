@@ -9,13 +9,17 @@ import { PushSpinner } from "react-spinners-kit";
 import { motion } from "framer-motion";
 
 function Profession({ profession, expansions, sourceTypes }) {
+  const variants = {
+    visible: { opacity: 1 },
+    hidden: { opacity: 0 },
+  };
   return (
     <>
       <section className="mb-5">
-        <header className="border-bottom py-1 my-3">
+        <motion.header className="border-bottom py-1 my-3">
           <h1>{profession.profession.name}</h1>
-        </header>
-        <article>
+        </motion.header>
+        <motion.article initial="hidden" animate="visible" variants={variants}>
           {expansions.map((expansion) => {
             return (
               <Expansion
@@ -26,7 +30,7 @@ function Profession({ profession, expansions, sourceTypes }) {
               />
             );
           })}
-        </article>
+        </motion.article>
       </section>
     </>
   );
@@ -136,9 +140,14 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
 }
 
 function Overview({ professions, expansions }) {
+  const variants = {
+    visible: { opacity: 1 },
+    hidden: { opacity: 0 },
+  };
+
   return (
     <>
-      <section>
+      <motion.section initial="hidden" animate="visible" variants={variants}>
         <header className="border-bottom py-1 my-3">
           <h1>Overview</h1>
         </header>
@@ -147,7 +156,7 @@ function Overview({ professions, expansions }) {
             return <Progress key={profession.profession.name} profession={profession} />;
           })}
         </article>
-      </section>
+      </motion.section>
     </>
   );
 }
@@ -184,6 +193,7 @@ function Progress({ profession }) {
     calcSkillPoints();
     calcPercentage();
   }, []);
+
   return (
     <>
       <section className="mt-4 mb-4">
@@ -214,30 +224,30 @@ function Progress({ profession }) {
 }
 
 function Navbar({ profileProfessions }) {
-  const navBar = {
+  const container = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        delayChildren: 0.5,
+        staggerChildren: 0.1,
       },
     },
   };
 
-  const navItem = {
+  const item = {
     hidden: { opacity: 0 },
     show: { opacity: 1 },
   };
 
   return (
-    <motion.nav variants={navBar} initial="hidden" animate="show" className="nav nav-pills nav-justified">
-      <Link variants={navItem} className="nav-link" to="/overview">
+    <motion.nav variants={container} initial="hidden" animate="show" className="nav nav-pills nav-justified">
+      <Link variants={item} className="nav-link" to="/overview">
         Overview
       </Link>
       {profileProfessions.map((profession) => {
         return profession ? (
           <Link
-            variants={navItem}
+            variants={item}
             key={profession.profession.id}
             className="nav-link"
             to={"/" + profession.profession.name}
@@ -250,6 +260,7 @@ function Navbar({ profileProfessions }) {
   );
 }
 
+// Input Component
 function Input(props) {
   const [state, setState] = useState({
     characterName: "",
@@ -261,10 +272,31 @@ function Input(props) {
     setState({ ...state, [event.target.name]: event.target.value });
   };
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.01,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1 },
+  };
+
   return (
     <div className="row m-3 justify-content-center">
-      <form className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2">
-        <div>
+      <motion.form
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2"
+      >
+        <motion.h3 className="text-center">Recipe Tracker</motion.h3>
+        <motion.div variants={item}>
           <input
             type="text"
             className="form-control"
@@ -276,8 +308,8 @@ function Input(props) {
             onChange={handleChange}
             autoFocus
           ></input>
-        </div>
-        <div>
+        </motion.div>
+        <motion.div variants={item}>
           <input
             type="text"
             className="form-control"
@@ -295,11 +327,11 @@ function Input(props) {
               return <option key={realm.id} id={realm.id} value={realm.region + "-" + realm.name}></option>;
             })}
           </datalist>
-        </div>
-        <button className="btn btn-primary" type="button" onClick={props.getProfileProfessions}>
+        </motion.div>
+        <motion.button variants={item} className="btn btn-primary" type="button" onClick={props.getProfileProfessions}>
           Search
-        </button>
-      </form>
+        </motion.button>
+      </motion.form>
     </div>
   );
 }
@@ -425,18 +457,18 @@ function App() {
     getSourceTypes();
   }, []);
 
-  const navBar = {
-    hidden: {
-      opacity: 0,
-      y: 0,
-    },
+  const container = {
+    hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      y: 0,
+      transition: {
+        delay: 1,
+        delayChildren: 0.5,
+      },
     },
   };
 
-  const navLink = {
+  const item = {
     hidden: { opacity: 0 },
     show: { opacity: 1 },
   };
@@ -454,18 +486,23 @@ function App() {
   // e.target.value.toLowerCase();
   return (
     <Router>
-      <div className="container">
-        {showNavbar ? <Navbar profileProfessions={profileProfessions} /> : null}
-        <Input
-          data={state}
-          onChange={(data) => onchange(data)}
-          // onChange={(realm) => handleRealm(realm)}
-          realms={realms}
-          getProfileProfessions={getProfileProfessions}
-        />
+      <div className="container vh-100">
+        {showNavbar ? (
+          <Navbar profileProfessions={profileProfessions} />
+        ) : (
+          <div className="row align-items-center h-75">
+            <Input
+              data={state}
+              onChange={(data) => onchange(data)}
+              // onChange={(realm) => handleRealm(realm)}
+              realms={realms}
+              getProfileProfessions={getProfileProfessions}
+            />
+          </div>
+        )}
         <Switch>
+          <Route exact path="/" />
           <Route
-            exact
             path="/overview"
             render={() => <Overview professions={profileProfessions} expansions={expansions} />}
           />
