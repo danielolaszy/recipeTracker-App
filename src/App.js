@@ -4,28 +4,39 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect } from "react";
 import Axios from "axios";
 import qs from "qs"; // used to oAuth token
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route, Link, NavLink } from "react-router-dom";
 import { PushSpinner } from "react-spinners-kit";
 import { motion } from "framer-motion";
 
-function Profession({ profession, expansions, sourceTypes, profileCharacterName, profileRealm, profileRegion }) {
+function Profession({
+  profession,
+  expansions,
+  sourceTypes,
+  profileCharacterName,
+  profileRealm,
+  profileRegion,
+  profileUrl,
+}) {
   const variants = {
     visible: { opacity: 1 },
     hidden: { opacity: 0 },
   };
+
   return (
     <>
       <section className="mb-5 pb-5">
         <motion.header className="d-flex flex-row border-bottom py-1 my-3 ">
           <div className="d-flex flex-fill align-self-baseline">
-            <div className="d-flex flex-column justify-content-start">
-              <h1 className="fw-bolder">{profession.profession.name}</h1>
+            <div className="d-flex flex-column flex-fill justify-content-start">
+              <h1 className="fw-bolder mb-1">{profession.profession.name}</h1>
             </div>
-            <div className="d-flex flex-column align-self-end flex-fill">
-              <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-              <p className="text-end m-0 p-0">
-                {profileRegion}-{profileRealm}
-              </p>
+            <div className="d-flex flex-column align-self-end">
+              <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
+                <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+                <p className="text-end m-0 p-0 fw-light">
+                  {profileRegion}-{profileRealm}
+                </p>
+              </a>
             </div>
           </div>
         </motion.header>
@@ -34,7 +45,7 @@ function Profession({ profession, expansions, sourceTypes, profileCharacterName,
             <div className="row m-3 justify-content-center align-items-center h-75">
               <div className="col">
                 <h3 className="text-center fw-normal m-0">404</h3>
-                <p className="text-center fw-light">Could not find any recipes for {profession.profession.name}...</p>
+                <p className="text-center">Could not find any recipes for {profession.profession.name}...</p>
               </div>
             </div>
           ) : (
@@ -49,7 +60,6 @@ function Profession({ profession, expansions, sourceTypes, profileCharacterName,
               );
             })
           )}
-          {}
         </motion.article>
       </section>
     </>
@@ -159,7 +169,7 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
   );
 }
 
-function Overview({ professions, expansions }) {
+function Overview({ professions, expansions, profileCharacterName, profileRealm, profileRegion, profileUrl }) {
   console.log(professions);
   const variants = {
     visible: { opacity: 1 },
@@ -170,9 +180,19 @@ function Overview({ professions, expansions }) {
     <>
       {professions ? (
         <motion.section initial="hidden" animate="visible" variants={variants}>
-          <header className="border-bottom py-1 my-3">
-            <h1>Overview</h1>
-          </header>
+          <motion.header className="d-flex flex-row border-bottom py-1 my-3 ">
+            <div className="d-flex flex-fill align-self-baseline">
+              <div className="d-flex flex-column flex-fill justify-content-start">
+                <h1 className="fw-bolder mb-1">Overview</h1>
+              </div>
+              <div className="d-flex flex-column align-self-end">
+                <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
+                  <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+                  <p className="text-end m-0 p-0 fw-light">{profileRegion + profileRealm}</p>
+                </a>
+              </div>
+            </div>
+          </motion.header>
           <article>
             {professions.map((profession) => {
               return <Progress key={profession.profession.name} profession={profession} />;
@@ -272,21 +292,47 @@ function Navbar({ profileProfessions, onClick }) {
   };
 
   return (
-    <motion.nav variants={container} initial="hidden" animate="show" className="nav nav-pills nav-justified">
-      <Link className="nav-link" to="/overview">
-        Overview
-      </Link>
-      {profileProfessions.map((profession) => {
-        return profession ? (
-          <Link key={profession.profession.id} className="nav-link" to={"/" + profession.profession.name}>
-            {profession.profession.name}
-          </Link>
-        ) : null;
-      })}
-      <Link value={[]} className="nav-link" to="/" onClick={(e) => onClick(e.target.value)}>
-        Log out
-      </Link>
-    </motion.nav>
+    <>
+      <motion.nav variants={container} initial="hidden" animate="show" class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+          <a class="navbar-brand py-2" href="#">
+            Recipe Tracker
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <NavLink className="nav-link" to="/overview" activeClassName="selected">
+                Overview
+              </NavLink>
+              <NavLink
+                className="nav-link"
+                to="/"
+                activeClassName="selected"
+                value={[]}
+                onClick={(e) => onClick(e.target.value)}
+              >
+                Log out
+              </NavLink>
+              {profileProfessions.map((profession) => {
+                return profession ? (
+                  <NavLink
+                    key={profession.profession.id}
+                    className="nav-link"
+                    to={"/" + profession.profession.name}
+                    activeClassName="active"
+                  >
+                    {profession.profession.name}
+                  </NavLink>
+                ) : null;
+              })}
+              <hr className="border-bottom border-color-primary m-0"></hr>
+            </ul>
+          </div>
+        </div>
+      </motion.nav>
+    </>
   );
 }
 
@@ -397,7 +443,7 @@ function App() {
   const getProfileProfessions = () => {
     try {
       getAccessToken();
-      const realmFind = realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
+      const realmFind = findRealm();
       blizzApi
         .get(
           "/profile/wow/character/" +
@@ -416,6 +462,43 @@ function App() {
         });
     } catch (err) {
       console.error("Failed to query blizzard api for character profile:\n" + err);
+    }
+  };
+
+  const findRealm = () => {
+    try {
+      return realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getProfileUrl = () => {
+    try {
+      if (profileRegion == "US") {
+        return (
+          "https://worldofwarcraft.com/en-us/character/" +
+          profileRegion.toLowerCase() +
+          "/" +
+          findRealm().slug +
+          "/" +
+          profileCharacterName
+        );
+      } else if (profileRegion == "EU") {
+        return (
+          "https://worldofwarcraft.com/en-gb/character/" +
+          profileRegion.toLowerCase() +
+          "/" +
+          findRealm().slug +
+          "/" +
+          profileCharacterName
+        );
+      } else {
+        return "no";
+      }
+      // STILL NEED TO ADD ASIAN ARMORY
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -534,7 +617,16 @@ function App() {
 
           <Route
             path="/Overview"
-            render={() => <Overview professions={profileProfessions} expansions={expansions} />}
+            render={() => (
+              <Overview
+                professions={profileProfessions}
+                expansions={expansions}
+                profileCharacterName={profileCharacterName}
+                profileRealm={profileRealm}
+                profileRegion={profileRegion}
+                profileUrl={getProfileUrl()}
+              />
+            )}
           />
 
           {profileProfessions.map((profession) => {
@@ -550,6 +642,8 @@ function App() {
                     profileCharacterName={profileCharacterName}
                     profileRealm={profileRealm}
                     profileRegion={profileRegion}
+                    profileSlug={findRealm()}
+                    profileUrl={getProfileUrl()}
                   />
                 )}
               />
