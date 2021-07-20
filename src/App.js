@@ -8,6 +8,7 @@ import { BrowserRouter as Router, Switch, Route, Link, NavLink } from "react-rou
 import { PushSpinner } from "react-spinners-kit";
 import { motion } from "framer-motion";
 
+// PROFESSION COMPONENT
 function Profession({
   profession,
   expansions,
@@ -51,11 +52,8 @@ function Profession({
         </motion.header>
         <motion.article initial="hidden" animate="visible" variants={variants}>
           {profession.profession.name === "Fishing" || profession.profession.name === "Archaeology" ? (
-            <div className="row m-3 justify-content-center align-items-center h-75">
-              <div className="col">
-                <h3 className="text-center fw-normal m-0">404</h3>
-                <p className="text-center">Could not find any recipes for {profession.profession.name}...</p>
-              </div>
+            <div className="d-flex align-items-center">
+              <p className="text-center">{"Could not find any recipes for " + profession.profession.name + "..."}</p>
             </div>
           ) : (
             expansions.map((expansion) => {
@@ -75,8 +73,10 @@ function Profession({
   );
 }
 
+// EXPANSION COMPONENT
 function Expansion({ profession, expansion, sourceTypes }) {
   const [recipeIds, setRecipeIds] = useState([]);
+
   useEffect(() => {
     try {
       if (profession.tiers !== null) {
@@ -89,6 +89,7 @@ function Expansion({ profession, expansion, sourceTypes }) {
       console.error(err);
     }
   }, []);
+
   return (
     <>
       <section id={expansion.expansion} className="mt-4 mb-4">
@@ -113,27 +114,25 @@ function Expansion({ profession, expansion, sourceTypes }) {
   );
 }
 
+// SOURCETYPE COMPONENT
 function SourceType({ profession, expansion, sourceType, recipeIds }) {
   const [recipes, setRecipes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Getting recipes from database
   const getRecipes = () => {
-    try {
-      setIsLoading(true);
-      Axios.get(
-        "http://localhost:3001/recipes/" +
-          profession.profession.name +
-          "/" +
-          expansion.expansion +
-          "/" +
-          sourceType.sourcetype
-      ).then((response) => {
+    Axios.get(
+      "http://localhost:3001/recipes/" +
+        profession.profession.name +
+        "/" +
+        expansion.expansion +
+        "/" +
+        sourceType.sourcetype
+    )
+      .then((response) => {
         setRecipes(response.data);
-      });
-      setIsLoading(false);
-    } catch (err) {
-      console.error(err);
-    }
+      })
+      .catch((err) => console.error(err));
   };
 
   useEffect(() => {
@@ -178,7 +177,8 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
   );
 }
 
-function Overview({ professions, expansions, profileCharacterName, profileRealm, profileRegion, profileUrl }) {
+// OVERVIEW COMPONENT
+function Overview({ professions, profileCharacterName, profileRealm, profileRegion, profileUrl, profileAvatar }) {
   console.log(professions);
   const variants = {
     visible: { opacity: 1 },
@@ -195,11 +195,19 @@ function Overview({ professions, expansions, profileCharacterName, profileRealm,
                 <h1 className="fw-bolder mb-1">Overview</h1>
               </div>
               <div className="d-flex flex-column align-self-end">
+                <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+                <p className="text-end m-0 p-0 fw-normal small">
+                  {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
+                </p>
+              </div>
+              <div className="d-flex flex-column align-self-end">
                 <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
-                  <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-                  <p className="text-end m-0 p-0 fw-light">
-                    {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
-                  </p>
+                  <img
+                    src={profileAvatar}
+                    className="rounded-3 ms-2"
+                    style={{ maxWidth: "40px" }}
+                    alt="Profile Avatar"
+                  ></img>
                 </a>
               </div>
             </div>
@@ -215,6 +223,7 @@ function Overview({ professions, expansions, profileCharacterName, profileRealm,
   );
 }
 
+// PROGRESS COMPONENT
 function Progress({ profession }) {
   const [maxSkillPoints, setMaxSkillPoints] = useState([]);
   const [skillPoints, setSkillPoints] = useState([]);
@@ -234,14 +243,14 @@ function Progress({ profession }) {
       setSkillPoints(skillPointsArraySum);
     }
   };
-
+  // Calculating the percentage for the width of the progress bar
   const calcPercentage = () => {
     if ((profession.id = 794)) {
       const percentage = (skillPoints / maxSkillPoints) * 100 + "%";
       return percentage;
     }
   };
-
+  // Making progress bar disabled if profession is Archaeology
   const progressDisable = () => {
     if (profession.profession.name === "Archaeology") {
       return 100 + "%";
@@ -418,7 +427,13 @@ function Input(props) {
             })}
           </datalist>
         </motion.div>
-        <motion.Link to="/Overview" variants={item} className="btn btn-primary" onClick={props.getProfileProfessions}>
+        <motion.Link
+          to="/Overview"
+          tabindex="0"
+          variants={item}
+          className="btn btn-primary"
+          onClick={props.getProfileProfessions}
+        >
           Search
         </motion.Link>
       </motion.form>
@@ -426,6 +441,7 @@ function Input(props) {
   );
 }
 
+// APP COMPONENT
 function App() {
   const [profileRegion, setProfileRegion] = useState("");
   const [profileRealm, setProfileRealm] = useState("");
@@ -439,13 +455,12 @@ function App() {
 
   const [accessToken, setAccessToken] = useState("");
 
-  const [showNavbar, setShowNavbar] = useState(false);
   const [state, setState] = useState({
     characterName: "",
     realm: "",
   });
 
-  // creating baseURL for axios
+  // creating baseURL for Axios
   const blizzApi = Axios.create({
     baseURL: "https://" + profileRegion + ".api.blizzard.com/",
     headers: {
@@ -471,8 +486,9 @@ function App() {
       .then((response) => {
         console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
         setProfileProfessions(response.data.primaries);
-        setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
-        setShowNavbar(true);
+        if (response.data.secondaries) {
+          setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
+        }
       })
       .then(getAvatar())
       .catch((err) => console.error(err));
@@ -482,13 +498,14 @@ function App() {
     try {
       return realms.find((realm) => realm.name === profileRealm && realm.region === profileRegion);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to filter realm: " + err);
     }
   };
 
   const getProfileUrl = () => {
     try {
-      if (profileRegion == "US") {
+      if (profileRegion === "US") {
+        // If input region is US get US link
         return (
           "https://worldofwarcraft.com/en-us/character/" +
           profileRegion.toLowerCase() +
@@ -497,7 +514,8 @@ function App() {
           "/" +
           profileCharacterName
         );
-      } else if (profileRegion == "EU") {
+      } else if (profileRegion === "EU") {
+        // If input region is EU get EU link
         return (
           "https://worldofwarcraft.com/en-gb/character/" +
           profileRegion.toLowerCase() +
@@ -515,25 +533,25 @@ function App() {
     }
   };
 
+  // Getting OAuth2 access token for Blizzard API
   const getAccessToken = () => {
-    try {
-      const data = { "grant_type": "client_credentials" };
-      Axios.request({
-        url: "/oauth/token",
-        method: "post",
-        baseURL: "https://us.battle.net/",
-        headers: { "content-type": "application/x-www-form-urlencoded" },
-        auth: {
-          username: process.env.REACT_APP_CLIENT_ID,
-          password: process.env.REACT_APP_CLIENT_SECRET,
-        },
-        data: qs.stringify(data),
-      }).then((response) => setAccessToken(response.data.access_token));
-    } catch (err) {
-      console.error(err);
-    }
+    const data = { "grant_type": "client_credentials" };
+    Axios.request({
+      url: "/oauth/token",
+      method: "post",
+      baseURL: "https://us.battle.net/",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      auth: {
+        username: process.env.REACT_APP_CLIENT_ID,
+        password: process.env.REACT_APP_CLIENT_SECRET,
+      },
+      data: qs.stringify(data),
+    })
+      .then((response) => setAccessToken(response.data.access_token))
+      .catch((err) => console.error(err));
   };
 
+  // Getting profile Avatar from Blizzard API
   const getAvatar = () => {
     blizzApi
       .get(
@@ -545,7 +563,11 @@ function App() {
           profileRegion.toLowerCase() +
           "&locale=en_US"
       )
-      .then((response) => setProfileAvatar(response.data.assets[0].value))
+      .then((response) =>
+        response.data.avatar_url
+          ? setProfileAvatar(response.data.avatar_url)
+          : setProfileAvatar(response.data.assets[0].value)
+      )
       .catch((err) => console.error("Failed to get avatar: " + err));
   };
 
@@ -582,37 +604,21 @@ function App() {
     }
   };
 
-  const handleCharacter = (data) => {
-    // setProfileCharacterName(data); // toLowerCase is needed, otherwise API won't accept character name
-    console.log("handleCharacter: " + data);
-  };
+  // const handleCharacter = (data) => {
+  //   // setProfileCharacterName(data); // toLowerCase is needed, otherwise API won't accept character name
+  //   console.log("handleCharacter: " + data);
+  // };
 
-  const handleRealm = (data) => {
-    setProfileRegion(data.slice(0, 2));
-    setProfileRealm(data.slice(3, 255));
-  };
+  // const handleRealm = (data) => {
+  //   setProfileRegion(data.slice(0, 2));
+  //   setProfileRealm(data.slice(3, 255));
+  // };
 
   useEffect(() => {
     getRealms();
     getExpansions();
     getSourceTypes();
   }, []);
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        delay: 1,
-        delayChildren: 0.5,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1 },
-  };
 
   const onchange = (data) => {
     setProfileCharacterName(data.characterName.toLowerCase());
@@ -653,6 +659,7 @@ function App() {
                 profileRealm={profileRealm}
                 profileRegion={profileRegion}
                 profileUrl={getProfileUrl()}
+                profileAvatar={profileAvatar}
               />
             )}
           />
