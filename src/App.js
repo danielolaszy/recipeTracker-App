@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Axios from "axios";
 import qs from "qs"; // used to oAuth token
 import { BrowserRouter as Router, Switch, Route, Link, NavLink } from "react-router-dom";
-import { PushSpinner } from "react-spinners-kit";
+// import { PushSpinner } from "react-spinners-kit";
 import { motion } from "framer-motion";
 
 // PROFESSION COMPONENT
@@ -117,7 +117,6 @@ function Expansion({ profession, expansion, sourceTypes }) {
 // SOURCETYPE COMPONENT
 function SourceType({ profession, expansion, sourceType, recipeIds }) {
   const [recipes, setRecipes] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Getting recipes from database
   const getRecipes = () => {
@@ -164,7 +163,7 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
                     id={recipe.id}
                     src={process.env.PUBLIC_URL + "/icons/" + recipe.icon + ".jpg"}
                     className="rounded-3 border border-danger"
-                    style={{ maxWidth: "35px", filter: "grayscale(100%)", filter: "brightness(15%)" }}
+                    style={{ maxWidth: "35px", filter: "grayscale(100%) brightness(15%)" }}
                     alt={recipe.name}
                   ></img>
                 </a>
@@ -252,7 +251,7 @@ function Progress({ profession }) {
   };
   // Making progress bar disabled if profession is Archaeology
   const progressDisable = () => {
-    if (profession.profession.name === "Archaeology") {
+    if (profession.profession.name === "Archaeology" || profession.profession.name === "Fishing") {
       return 100 + "%";
     } else {
       return calcPercentage();
@@ -277,14 +276,17 @@ function Progress({ profession }) {
           <Link to={"/" + profession.profession.name}>
             <div className="progress">
               <div
-                className="progress-bar"
+                className={
+                  profession.profession.name === "Archaeology" || profession.profession.name === "Fishing"
+                    ? "progress-bar bg-secondary"
+                    : "progress-bar"
+                }
                 role="progressbar"
                 style={{ width: progressDisable() }}
-                aria-valuenow="25"
-                aria-valuemin="0"
-                aria-valuemax="100"
               >
-                {skillPoints + "/" + maxSkillPoints}
+                {profession.profession.name === "Archaeology" || profession.profession.name === "Fishing"
+                  ? null
+                  : skillPoints + "/" + maxSkillPoints}
               </div>
             </div>
           </Link>
@@ -304,11 +306,6 @@ function Navbar({ profileProfessions, onClick }) {
         staggerChildren: 0.1,
       },
     },
-  };
-
-  const item = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1 },
   };
 
   return (
