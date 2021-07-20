@@ -16,6 +16,7 @@ function Profession({
   profileRealm,
   profileRegion,
   profileUrl,
+  profileAvatar,
 }) {
   const variants = {
     visible: { opacity: 1 },
@@ -31,11 +32,19 @@ function Profession({
               <h1 className="fw-bolder mb-1">{profession.profession.name}</h1>
             </div>
             <div className="d-flex flex-column align-self-end">
+              <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+              <p className="text-end m-0 p-0 fw-normal small">
+                {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
+              </p>
+            </div>
+            <div className="d-flex flex-column align-self-end">
               <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
-                <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-                <p className="text-end m-0 p-0 fw-light">
-                  {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
-                </p>
+                <img
+                  src={profileAvatar}
+                  className="rounded-3 ms-2"
+                  style={{ maxWidth: "40px" }}
+                  alt="Profile Avatar"
+                ></img>
               </a>
             </div>
           </div>
@@ -296,46 +305,44 @@ function Navbar({ profileProfessions, onClick }) {
   return (
     <>
       <motion.nav variants={container} initial="hidden" animate="show" class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-          <Link className="navbar-brand" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
-            Recipe Tracker
-          </Link>
+        <Link className="navbar-brand" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
+          Recipe Tracker
+        </Link>
 
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
-            <span class="navbar-toggler-icon"></span>
-          </button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-              <NavLink className="nav-link" to="/overview" activeClassName="selected">
-                Overview
-              </NavLink>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <NavLink className="nav-link" to="/overview" activeClassName="selected">
+              Overview
+            </NavLink>
 
-              {profileProfessions.map((profession) => {
-                return profession ? (
-                  <NavLink
-                    key={profession.profession.id}
-                    className="nav-link"
-                    to={"/" + profession.profession.name}
-                    activeClassName="active"
-                  >
-                    {profession.profession.name}
-                  </NavLink>
-                ) : null;
-              })}
-            </div>
-            <hr className="border-bottom my-1"></hr>
-            <div class="navbar-nav d-flex flex-fill justify-content-end">
-              <Link
-                className="nav-link"
-                to="/"
-                activeClassName="selected"
-                value={[]}
-                onClick={(e) => onClick(e.target.value)}
-              >
-                Log out
-              </Link>
-            </div>
+            {profileProfessions.map((profession) => {
+              return profession ? (
+                <NavLink
+                  key={profession.profession.id}
+                  className="nav-link"
+                  to={"/" + profession.profession.name}
+                  activeClassName="active"
+                >
+                  {profession.profession.name}
+                </NavLink>
+              ) : null;
+            })}
+          </div>
+          <hr className="border-bottom my-1"></hr>
+          <div class="navbar-nav d-flex flex-fill justify-content-end">
+            <Link
+              className="nav-link"
+              to="/"
+              activeClassName="selected"
+              value={[]}
+              onClick={(e) => onClick(e.target.value)}
+            >
+              Log out
+            </Link>
           </div>
         </div>
       </motion.nav>
@@ -424,6 +431,7 @@ function App() {
   const [profileRealm, setProfileRealm] = useState("");
   const [profileCharacterName, setProfileCharacterName] = useState("");
   const [profileProfessions, setProfileProfessions] = useState([]);
+  const [profileAvatar, setProfileAvatar] = useState("");
 
   const [realms, setRealms] = useState([]);
   const [expansions, setExpansions] = useState([]);
@@ -448,28 +456,26 @@ function App() {
 
   // Getting professions for character input in the fields
   const getProfileProfessions = () => {
-    try {
-      getAccessToken();
-      const realmFind = findRealm();
-      blizzApi
-        .get(
-          "/profile/wow/character/" +
-            realmFind.slug +
-            "/" +
-            profileCharacterName +
-            "/professions?namespace=profile-" +
-            profileRegion +
-            "&locale=en_US"
-        )
-        .then((response) => {
-          console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
-          setProfileProfessions(response.data.primaries);
-          setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
-          setShowNavbar(true);
-        });
-    } catch (err) {
-      console.error("Failed to query blizzard api for character profile:\n" + err);
-    }
+    getAccessToken();
+    const realmFind = findRealm();
+    blizzApi
+      .get(
+        "/profile/wow/character/" +
+          realmFind.slug +
+          "/" +
+          profileCharacterName +
+          "/professions?namespace=profile-" +
+          profileRegion +
+          "&locale=en_US"
+      )
+      .then((response) => {
+        console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
+        setProfileProfessions(response.data.primaries);
+        setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
+        setShowNavbar(true);
+      })
+      .then(getAvatar())
+      .catch((err) => console.error(err));
   };
 
   const findRealm = () => {
@@ -526,6 +532,21 @@ function App() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const getAvatar = () => {
+    blizzApi
+      .get(
+        "/profile/wow/character/" +
+          findRealm().slug +
+          "/" +
+          profileCharacterName +
+          "/character-media?namespace=profile-" +
+          profileRegion.toLowerCase() +
+          "&locale=en_US"
+      )
+      .then((response) => setProfileAvatar(response.data.assets[0].value))
+      .catch((err) => console.error("Failed to get avatar: " + err));
   };
 
   // Getting realms from database
@@ -651,6 +672,7 @@ function App() {
                     profileRegion={profileRegion}
                     profileSlug={findRealm()}
                     profileUrl={getProfileUrl()}
+                    profileAvatar={profileAvatar}
                   />
                 )}
               />
