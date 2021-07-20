@@ -32,22 +32,13 @@ function Profession({
             <div className="d-flex flex-column flex-fill justify-content-start">
               <h1 className="fw-bolder mb-1">{profession.profession.name}</h1>
             </div>
-            <div className="d-flex flex-column align-self-end">
-              <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-              <p className="text-end m-0 p-0 fw-normal small">
-                {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
-              </p>
-            </div>
-            <div className="d-flex flex-column align-self-end">
-              <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={profileAvatar}
-                  className="rounded-3 ms-2"
-                  style={{ maxWidth: "40px" }}
-                  alt="Profile Avatar"
-                ></img>
-              </a>
-            </div>
+            <Avatar
+              profileRealm={profileRealm}
+              profileRegion={profileRegion}
+              profileCharacterName={profileCharacterName}
+              profileAvatar={profileAvatar}
+              profileUrl={profileUrl}
+            />
           </div>
         </motion.header>
         <motion.article initial="hidden" animate="visible" variants={variants}>
@@ -176,9 +167,27 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
   );
 }
 
+// AVATAR COMPONENT
+function Avatar({ profileRealm, profileRegion, profileCharacterName, profileAvatar, profileUrl }) {
+  return (
+    <>
+      <div className="d-flex flex-column align-self-end">
+        <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+        <p className="text-end m-0 p-0 fw-normal small">
+          {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
+        </p>
+      </div>
+      <div className="d-flex flex-column align-self-end">
+        <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
+          <img src={profileAvatar} className="rounded-3 ms-2" style={{ maxWidth: "40px" }} alt="Profile Avatar"></img>
+        </a>
+      </div>
+    </>
+  );
+}
+
 // OVERVIEW COMPONENT
 function Overview({ professions, profileCharacterName, profileRealm, profileRegion, profileUrl, profileAvatar }) {
-  console.log(professions);
   const variants = {
     visible: { opacity: 1 },
     hidden: { opacity: 0 },
@@ -193,22 +202,13 @@ function Overview({ professions, profileCharacterName, profileRealm, profileRegi
               <div className="d-flex flex-column flex-fill justify-content-start">
                 <h1 className="fw-bolder mb-1">Overview</h1>
               </div>
-              <div className="d-flex flex-column align-self-end">
-                <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-                <p className="text-end m-0 p-0 fw-normal small">
-                  {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
-                </p>
-              </div>
-              <div className="d-flex flex-column align-self-end">
-                <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
-                  <img
-                    src={profileAvatar}
-                    className="rounded-3 ms-2"
-                    style={{ maxWidth: "40px" }}
-                    alt="Profile Avatar"
-                  ></img>
-                </a>
-              </div>
+              <Avatar
+                profileRealm={profileRealm}
+                profileRegion={profileRegion}
+                profileCharacterName={profileCharacterName}
+                profileAvatar={profileAvatar}
+                profileUrl={profileUrl}
+              />
             </div>
           </motion.header>
           <article>
@@ -424,7 +424,7 @@ function Input(props) {
             })}
           </datalist>
         </motion.div>
-        <motion.Link
+        <Link
           to="/Overview"
           tabindex="0"
           variants={item}
@@ -432,7 +432,7 @@ function Input(props) {
           onClick={props.getProfileProfessions}
         >
           Search
-        </motion.Link>
+        </Link>
       </motion.form>
     </div>
   );
@@ -482,7 +482,9 @@ function App() {
       )
       .then((response) => {
         console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
-        setProfileProfessions(response.data.primaries);
+        if (response.data.primaries) {
+          setProfileProfessions(response.data.primaries);
+        }
         if (response.data.secondaries) {
           setProfileProfessions((profileProfessions) => [...profileProfessions, ...response.data.secondaries]);
         }
@@ -627,39 +629,35 @@ function App() {
     <Router>
       <div className="container vh-100">
         {profileProfessions.length > 0 ? (
-          <Navbar profileProfessions={profileProfessions} onClick={() => setProfileProfessions([])} />
-        ) : null}
-        <Switch>
-          <Route
-            exact
-            path="/"
-            render={() =>
-              profileProfessions.length < 1 ? (
-                <Input
-                  data={state}
-                  onChange={(data) => onchange(data)}
-                  // onChange={(realm) => handleRealm(realm)}
-                  realms={realms}
-                  getProfileProfessions={getProfileProfessions}
-                />
-              ) : null
-            }
+          <>
+            <Navbar profileProfessions={profileProfessions} onClick={() => setProfileProfessions([])} />
+          </>
+        ) : (
+          <Input
+            data={state}
+            onChange={(data) => onchange(data)}
+            realms={realms}
+            getProfileProfessions={getProfileProfessions}
           />
+        )}
 
-          <Route
-            path="/Overview"
-            render={() => (
-              <Overview
-                professions={profileProfessions}
-                expansions={expansions}
-                profileCharacterName={profileCharacterName}
-                profileRealm={profileRealm}
-                profileRegion={profileRegion}
-                profileUrl={getProfileUrl()}
-                profileAvatar={profileAvatar}
-              />
-            )}
-          />
+        <Switch>
+          {profileProfessions ? (
+            <Route
+              path="/Overview"
+              render={() => (
+                <Overview
+                  professions={profileProfessions}
+                  expansions={expansions}
+                  profileCharacterName={profileCharacterName}
+                  profileRealm={profileRealm}
+                  profileRegion={profileRegion}
+                  profileUrl={getProfileUrl()}
+                  profileAvatar={profileAvatar}
+                />
+              )}
+            />
+          ) : null}
 
           {profileProfessions.map((profession) => {
             return profession ? (
