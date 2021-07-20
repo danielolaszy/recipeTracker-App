@@ -34,7 +34,7 @@ function Profession({
               <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
                 <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
                 <p className="text-end m-0 p-0 fw-light">
-                  {profileRegion}-{profileRealm}
+                  {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
                 </p>
               </a>
             </div>
@@ -188,7 +188,9 @@ function Overview({ professions, expansions, profileCharacterName, profileRealm,
               <div className="d-flex flex-column align-self-end">
                 <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
                   <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-                  <p className="text-end m-0 p-0 fw-light">{profileRegion + profileRealm}</p>
+                  <p className="text-end m-0 p-0 fw-light">
+                    {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
+                  </p>
                 </a>
               </div>
             </div>
@@ -295,26 +297,20 @@ function Navbar({ profileProfessions, onClick }) {
     <>
       <motion.nav variants={container} initial="hidden" animate="show" class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-          <a class="navbar-brand py-2" href="#">
+          <Link className="navbar-brand" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
             Recipe Tracker
-          </a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          </Link>
+
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
             <span class="navbar-toggler-icon"></span>
           </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
               <NavLink className="nav-link" to="/overview" activeClassName="selected">
                 Overview
               </NavLink>
-              <NavLink
-                className="nav-link"
-                to="/"
-                activeClassName="selected"
-                value={[]}
-                onClick={(e) => onClick(e.target.value)}
-              >
-                Log out
-              </NavLink>
+
               {profileProfessions.map((profession) => {
                 return profession ? (
                   <NavLink
@@ -327,8 +323,19 @@ function Navbar({ profileProfessions, onClick }) {
                   </NavLink>
                 ) : null;
               })}
-              <hr className="border-bottom border-color-primary m-0"></hr>
-            </ul>
+            </div>
+            <hr className="border-bottom my-1"></hr>
+            <div class="navbar-nav d-flex flex-fill justify-content-end">
+              <Link
+                className="nav-link"
+                to="/"
+                activeClassName="selected"
+                value={[]}
+                onClick={(e) => onClick(e.target.value)}
+              >
+                Log out
+              </Link>
+            </div>
           </div>
         </div>
       </motion.nav>
