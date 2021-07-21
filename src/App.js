@@ -24,13 +24,31 @@ function Profession({
     hidden: { opacity: 0 },
   };
 
+  const [recipeIds, setRecipeIds] = useState([]);
+  console.log(profession.tiers);
+  // profession.tiers.forEach((tier) => console.log(tier.known_recipes));
+  useEffect(() => {
+    try {
+      if (profession.tiers !== null) {
+        const knownRecipes = profession.tiers.map((tier) =>
+          tier.known_recipes
+            ? tier.known_recipes.map((recipe) => recipe.id)
+            : console.log("Failed to find known_recipes for ", tier)
+        );
+        setRecipeIds(knownRecipes.flat(1));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   return (
     <>
       <section className="mb-5 pb-5">
         <motion.header className="d-flex flex-row border-bottom py-1 my-3 ">
           <div className="d-flex flex-fill align-self-baseline">
             <div className="d-flex flex-column flex-fill justify-content-start">
-              <h1 className="fw-bolder mb-1">{profession.profession.name}</h1>
+              <h3 className="fw-bolder m-0">{profession.profession.name}</h3>
             </div>
             <Avatar
               profileRealm={profileRealm}
@@ -54,6 +72,7 @@ function Profession({
                   profession={profession}
                   expansion={expansion}
                   sourceTypes={sourceTypes}
+                  recipeIds={recipeIds}
                 />
               );
             })
@@ -65,27 +84,12 @@ function Profession({
 }
 
 // EXPANSION COMPONENT
-function Expansion({ profession, expansion, sourceTypes }) {
-  const [recipeIds, setRecipeIds] = useState([]);
-
-  useEffect(() => {
-    try {
-      if (profession.tiers !== null) {
-        const knownRecipes = profession.tiers.map((tier) =>
-          tier.knownrecipes !== null ? tier.known_recipes.map((recipe) => recipe.id) : null
-        );
-        setRecipeIds(knownRecipes.flat(1));
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
+function Expansion({ profession, expansion, sourceTypes, recipeIds }) {
   return (
     <>
-      <section id={expansion.expansion} className="mt-4 mb-4">
+      <section id={expansion.expansion} className="my-5">
         <header>
-          <h3 className="m-0">{expansion.expansion}</h3>
+          <h5 className="m-0">{expansion.expansion}</h5>
         </header>
         <article className="d-flex align-content-start flex-wrap">
           {sourceTypes.map((sourceType) => {
@@ -132,7 +136,7 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
   return (
     <>
       {recipes.length > 0 ? (
-        <section className="row my-2">
+        <section className="row my-1">
           <header>
             <p className="text-capitalize mb-1">{sourceType.sourcetype}</p>
           </header>
@@ -171,17 +175,26 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
 function Avatar({ profileRealm, profileRegion, profileCharacterName, profileAvatar, profileUrl }) {
   return (
     <>
-      <div className="d-flex flex-column align-self-end">
-        <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-        <p className="text-end m-0 p-0 fw-normal small">
-          {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
-        </p>
-      </div>
-      <div className="d-flex flex-column align-self-end">
-        <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
-          <img src={profileAvatar} className="rounded-3 ms-2" style={{ maxWidth: "40px" }} alt="Profile Avatar"></img>
-        </a>
-      </div>
+      {profileAvatar ? (
+        <>
+          <div className="d-flex flex-column align-self-end">
+            <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
+            <p className="text-end m-0 p-0 fw-normal small">
+              {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
+            </p>
+          </div>
+          <div className="d-flex flex-column align-self-end">
+            <a className="text-decoration-none" href={profileUrl} target="_blank" rel="noopener noreferrer">
+              <img
+                src={profileAvatar}
+                className="rounded-3 ms-2"
+                style={{ maxWidth: "40px" }}
+                alt="Profile Avatar"
+              ></img>
+            </a>
+          </div>
+        </>
+      ) : null}
     </>
   );
 }
@@ -192,7 +205,6 @@ function Overview({ professions, profileCharacterName, profileRealm, profileRegi
     visible: { opacity: 1 },
     hidden: { opacity: 0 },
   };
-
   return (
     <>
       {professions ? (
@@ -202,6 +214,7 @@ function Overview({ professions, profileCharacterName, profileRealm, profileRegi
               <div className="d-flex flex-column flex-fill justify-content-start">
                 <h1 className="fw-bolder mb-1">Overview</h1>
               </div>
+
               <Avatar
                 profileRealm={profileRealm}
                 profileRegion={profileRegion}
@@ -310,17 +323,17 @@ function Navbar({ profileProfessions, onClick }) {
 
   return (
     <>
-      <motion.nav variants={container} initial="hidden" animate="show" class="navbar navbar-expand-lg navbar-dark">
+      <motion.nav variants={container} initial="hidden" animate="show" className="navbar navbar-expand-lg navbar-dark">
         <Link className="navbar-brand" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
           Recipe Tracker
         </Link>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
-          <span class="navbar-toggler-icon"></span>
+        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
+          <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav">
+        <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div className="navbar-nav">
             <NavLink className="nav-link" to="/overview" activeClassName="selected">
               Overview
             </NavLink>
@@ -339,7 +352,7 @@ function Navbar({ profileProfessions, onClick }) {
             })}
           </div>
           <hr className="border-bottom my-1"></hr>
-          <div class="navbar-nav d-flex flex-fill justify-content-end">
+          <div className="navbar-nav d-flex flex-fill justify-content-end">
             <Link
               className="nav-link"
               to="/"
@@ -373,7 +386,7 @@ function Input(props) {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.01,
+        staggerChildren: 0.1,
       },
     },
   };
@@ -384,15 +397,15 @@ function Input(props) {
   };
 
   return (
-    <div className="row m-3 justify-content-center align-items-center h-75">
+    <div className="row justify-content-center align-items-center h-75">
       <motion.form
         variants={container}
         initial="hidden"
         animate="show"
         className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2"
       >
-        <motion.h3 className="text-center">Recipe Tracker</motion.h3>
-        <motion.div variants={item}>
+        <h3 className="text-center">Recipe Tracker</h3>
+        <div>
           <input
             type="text"
             className="form-control"
@@ -404,8 +417,8 @@ function Input(props) {
             onChange={handleChange}
             autoFocus
           ></input>
-        </motion.div>
-        <motion.div variants={item}>
+        </div>
+        <div>
           <input
             type="text"
             className="form-control"
@@ -423,10 +436,10 @@ function Input(props) {
               return <option key={realm.id} id={realm.id} value={realm.region + "-" + realm.name}></option>;
             })}
           </datalist>
-        </motion.div>
+        </div>
         <Link
           to="/Overview"
-          tabindex="0"
+          tabIndex="0"
           variants={item}
           className="btn btn-primary"
           onClick={props.getProfileProfessions}
@@ -451,7 +464,7 @@ function App() {
   const [sourceTypes, setSourceTypes] = useState([]);
 
   const [accessToken, setAccessToken] = useState("");
-
+  const [showInput, setShowInput] = useState(false);
   const [state, setState] = useState({
     characterName: "",
     realm: "",
@@ -490,6 +503,7 @@ function App() {
         }
       })
       .then(getAvatar())
+      .then(setShowInput(true))
       .catch((err) => console.error(err));
   };
 
@@ -524,7 +538,7 @@ function App() {
           profileCharacterName
         );
       } else {
-        return "no";
+        return "profileUrl not found";
       }
       // STILL NEED TO ADD ASIAN ARMORY
     } catch (err) {
@@ -628,9 +642,9 @@ function App() {
   return (
     <Router>
       <div className="container vh-100">
-        {profileProfessions.length > 0 ? (
+        {showInput ? (
           <>
-            <Navbar profileProfessions={profileProfessions} onClick={() => setProfileProfessions([])} />
+            <Navbar profileProfessions={profileProfessions} onClick={() => setShowInput(false)} />
           </>
         ) : (
           <Input
