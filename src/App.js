@@ -12,7 +12,6 @@ import { motion } from "framer-motion";
 function Profession({
   profession,
   expansions,
-  sourceTypes,
   profileCharacterName,
   profileRealm,
   profileRegion,
@@ -25,10 +24,21 @@ function Profession({
   };
 
   const [recipeIds, setRecipeIds] = useState([]);
-  console.log(profession.tiers);
-  // profession.tiers.forEach((tier) => console.log(tier.known_recipes));
+  const [sourceTypes, setSourceTypes] = useState([]);
+
+  const getSourceTypes = () => {
+    try {
+      Axios.get("http://localhost:3001/sourcetypes/" + profession.profession.name).then((response) => {
+        setSourceTypes(response.data);
+      });
+    } catch (err) {
+      console.error("Failed to get sourcetypes from database: " + err);
+    }
+  };
+
   useEffect(() => {
     try {
+      getSourceTypes();
       if (profession.tiers !== null) {
         const knownRecipes = profession.tiers.map((tier) =>
           tier.known_recipes
@@ -112,6 +122,25 @@ function Expansion({ profession, expansion, sourceTypes, recipeIds }) {
 // SOURCETYPE COMPONENT
 function SourceType({ profession, expansion, sourceType, recipeIds }) {
   const [recipes, setRecipes] = useState([]);
+  const [orderStyling, setOrderStyling] = useState("order-first");
+  // console.log(sourceType.sourcetype);
+  const orderSourceType = () => {
+    if (sourceType.sourcetype === "unobtainable") {
+      setOrderStyling("order-last");
+    } else if (sourceType.sourcetype === "trainer") {
+      setOrderStyling("order-1");
+    } else if (sourceType.sourcetype === "vendor") {
+      setOrderStyling("order-2");
+    } else if (sourceType.sourcetype === "currency") {
+      setOrderStyling("order-3");
+    } else if (sourceType.sourcetype === "faction") {
+      setOrderStyling("order-4");
+    } else if (sourceType.sourcetype === "discovery") {
+      setOrderStyling("order-5");
+    } else if (sourceType.sourcetype === "drop") {
+      setOrderStyling("order-first");
+    }
+  };
 
   // Getting recipes from database
   const getRecipes = () => {
@@ -131,12 +160,13 @@ function SourceType({ profession, expansion, sourceType, recipeIds }) {
 
   useEffect(() => {
     getRecipes();
+    orderSourceType();
   }, []);
 
   return (
     <>
       {recipes.length > 0 ? (
-        <section className="row my-1">
+        <section className={"row my-1 flex-wrap " + orderStyling}>
           <header>
             <p className="text-capitalize mb-1">{sourceType.sourcetype}</p>
           </header>
@@ -334,18 +364,13 @@ function Navbar({ profileProfessions, onClick }) {
 
         <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div className="navbar-nav">
-            <NavLink className="nav-link" to="/overview" activeClassName="selected">
+            <NavLink className="nav-link" to="/overview">
               Overview
             </NavLink>
 
             {profileProfessions.map((profession) => {
               return profession ? (
-                <NavLink
-                  key={profession.profession.id}
-                  className="nav-link"
-                  to={"/" + profession.profession.name}
-                  activeClassName="active"
-                >
+                <NavLink key={profession.profession.id} className="nav-link" to={"/" + profession.profession.name}>
                   {profession.profession.name}
                 </NavLink>
               ) : null;
@@ -353,13 +378,7 @@ function Navbar({ profileProfessions, onClick }) {
           </div>
           <hr className="border-bottom my-1"></hr>
           <div className="navbar-nav d-flex flex-fill justify-content-end">
-            <Link
-              className="nav-link"
-              to="/"
-              activeClassName="selected"
-              value={[]}
-              onClick={(e) => onClick(e.target.value)}
-            >
+            <Link className="nav-link" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
               Log out
             </Link>
           </div>
@@ -461,7 +480,7 @@ function App() {
 
   const [realms, setRealms] = useState([]);
   const [expansions, setExpansions] = useState([]);
-  const [sourceTypes, setSourceTypes] = useState([]);
+  // const [sourceTypes, setSourceTypes] = useState([]);
 
   const [accessToken, setAccessToken] = useState("");
   const [showInput, setShowInput] = useState(false);
@@ -494,7 +513,7 @@ function App() {
           "&locale=en_US"
       )
       .then((response) => {
-        console.log("Fetching professions for " + profileCharacterName + " on " + profileRealm + " " + profileRegion);
+        console.log("Fetching professions for " + profileCharacterName + " on " + profileRegion + "-" + profileRealm);
         if (response.data.primaries) {
           setProfileProfessions(response.data.primaries);
         }
@@ -607,15 +626,15 @@ function App() {
   };
 
   // Getting sourcetypes from database
-  const getSourceTypes = () => {
-    try {
-      Axios.get("http://localhost:3001/sourcetypes/").then((response) => {
-        setSourceTypes(response.data);
-      });
-    } catch (err) {
-      console.error("Failed to get sourcetypes from database: " + err);
-    }
-  };
+  // const getSourceTypes = () => {
+  //   try {
+  //     Axios.get("http://localhost:3001/sourcetypes/").then((response) => {
+  //       setSourceTypes(response.data);
+  //     });
+  //   } catch (err) {
+  //     console.error("Failed to get sourcetypes from database: " + err);
+  //   }
+  // };
 
   // const handleCharacter = (data) => {
   //   // setProfileCharacterName(data); // toLowerCase is needed, otherwise API won't accept character name
@@ -630,7 +649,7 @@ function App() {
   useEffect(() => {
     getRealms();
     getExpansions();
-    getSourceTypes();
+    // getSourceTypes();
   }, []);
 
   const onchange = (data) => {
@@ -682,7 +701,7 @@ function App() {
                   <Profession
                     profession={profession}
                     expansions={expansions}
-                    sourceTypes={sourceTypes}
+                    // sourceTypes={sourceTypes}
                     profileCharacterName={profileCharacterName}
                     profileRealm={profileRealm}
                     profileRegion={profileRegion}
