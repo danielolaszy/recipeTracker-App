@@ -1,4 +1,4 @@
-// import logo from './logo.svg';
+import logo from "./logo1.svg";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, useEffect } from "react";
@@ -209,7 +209,7 @@ function Avatar({ profileRealm, profileRegion, profileCharacterName, profileAvat
         <>
           <div className="d-flex flex-column align-self-end">
             <h6 className="text-end text-capitalize m-0 p-0">{profileCharacterName}</h6>
-            <p className="text-end m-0 p-0 fw-normal small">
+            <p className="text-end m-0 p-0 fw-normal small realm">
               {profileRealm && profileRegion ? profileRegion + "-" + profileRealm : null}
             </p>
           </div>
@@ -354,8 +354,9 @@ function Navbar({ profileProfessions, onClick }) {
   return (
     <>
       <motion.nav variants={container} initial="hidden" animate="show" className="navbar navbar-expand-lg navbar-dark">
-        <Link className="navbar-brand" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
-          Recipe Tracker
+        <Link className="navbar-brand m-0 py-2 me-3" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
+          {/* <img src={logo} alt="logo" width="30" height="24" class="d-inline-block align-text-top me-2"></img> */}
+          Arator
         </Link>
 
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
@@ -423,7 +424,10 @@ function Input(props) {
         animate="show"
         className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2"
       >
-        <h3 className="text-center">Recipe Tracker</h3>
+        <div className="text-center">
+          {/* <img src={logo} alt="logo" width="auto" height="50"></img> */}
+          <h1 className="m-0">Arator</h1>
+        </div>
         <div>
           <input
             type="text"

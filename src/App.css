@@ -1,5 +1,5 @@
 body {
-  background-color: #1e2329 !important;
+  background-color: #222127 !important;
   font-family: "Lexend Deca", sans-serif !important;
 }
 
@@ -9,19 +9,23 @@ h3,
 h4,
 h5,
 h6 {
-  color: #cdd9e5;
+  color: #fdfdfd;
 }
 
 p {
-  color: #909dab;
+  color: #d4d4d4;
 }
 
 .selected {
-  color: #ffffff !important;
+  color: #fdfdfd !important;
+}
+.realm {
+  color: #d4d4d4;
+  font-size: 12px !important;
 }
 
 .custom-link {
-  color: #8c8c8c;
+  color: #a6a6a8;
 }
 
 /* width */
@@ -44,4 +48,13 @@ p {
 ::-webkit-scrollbar-thumb:hover {
   background: #3e4450;
   border-radius: 25px;
+}
+
+.but {
+  background-color: #4e7cff !important;
+}
+
+.logo {
+  background: rgb(170, 53, 253);
+  background: linear-gradient(50deg, rgba(170, 53, 253, 1) 0%, rgba(32, 119, 250, 1) 100%);
 }
