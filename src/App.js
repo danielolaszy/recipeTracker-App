@@ -355,7 +355,7 @@ function Navbar({ profileProfessions, onClick }) {
     <>
       <motion.nav variants={container} initial="hidden" animate="show" className="navbar navbar-expand-lg navbar-dark">
         <Link className="navbar-brand m-0 py-2 me-3" to="/" value={[]} onClick={(e) => onClick(e.target.value)}>
-          {/* <img src={logo} alt="logo" width="30" height="24" class="d-inline-block align-text-top me-2"></img> */}
+          <img src={logo} alt="logo" width="30" height="24" class="d-inline-block align-text-top me-2"></img>
           Arator
         </Link>
 
@@ -425,7 +425,7 @@ function Input(props) {
         className="col-xxl-3 col-xl-4 col-lg-5 col-md-6 col-sm-7 col-8 p-2 d-grid gap-2"
       >
         <div className="text-center">
-          {/* <img src={logo} alt="logo" width="auto" height="50"></img> */}
+          <img src={logo} alt="logo" width="auto" height="50"></img>
           <h1 className="m-0">Arator</h1>
         </div>
         <div>
