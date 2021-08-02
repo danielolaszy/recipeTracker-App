@@ -74,9 +74,6 @@ Here's why:
 A list of inspirations and commonly used resources that I found helpful are listed in the acknowledgements.
 
 ### Built With
-
-This section should list any major frameworks that you built your project using. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
 React was used in order to make it easy to build the interface thanks to React being component-based.
 Bootstrap was used for the styling as it is easy to use and makes development of the front end very quick.
 
