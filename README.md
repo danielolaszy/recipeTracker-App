@@ -17,7 +17,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/Voiidv2/wowRecipeTracker">
+  <a href="https://github.com/danielolaszy/wowRecipeTracker">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -26,14 +26,14 @@
   <p align="center">
     A simple way to track your recipe collections in World of Warcraft!
     <br />
-    <a href="https://github.com/Voiidv2/wowRecipeTracker"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/danielolaszy/wowRecipeTracker"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/Voiidv2/wowRecipeTracker">View Demo</a>
+    <a href="https://github.com/danielolaszy/wowRecipeTracker">View Demo</a>
     ·
-    <a href="https://github.com/Voiidv2/wowRecipeTracker/issues">Report Bug</a>
+    <a href="https://github.com/danielolaszy/wowRecipeTracker/issues">Report Bug</a>
     ·
-    <a href="https://github.com/Voiidv2/wowRecipeTracker/issues">Request Feature</a>
+    <a href="https://github.com/danielolaszy/wowRecipeTracker/issues">Request Feature</a>
   </p>
 </p>
 
@@ -62,7 +62,7 @@
 
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://github.com/Voiidv2/wowRecipeTracker)
+[![Product Name Screen Shot][product-screenshot]](https://github.com/danielolaszy/wowRecipeTracker)
 
 There are many websites out on the internet that allows you to track collected recipes in World of Warcraft. Unfortunately one of them has been depreciated for a couple of years and one other was difficult to look at and see which recipes needed collecting and which did not. I didn't find one that really suited my needs so I created this enhanced one. This will be the last recipe tracker you'll ever need.
 
@@ -99,7 +99,7 @@ In order to get started with the project you'll need to have NPM. To get the pro
 1. Get a free API Key at [develop.battle.net](https://develop.battle.net/)
 2. Clone the repo
    ```sh
-   git clone https://github.com/Voiidv2/wowRecipeTracker.git
+   git clone https://github.com/danielolaszy/wowRecipeTracker.git
    ```
 3. Install NPM packages
    ```sh
